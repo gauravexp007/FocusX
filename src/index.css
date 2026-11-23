@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Comfortaa", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-hand-caveat: "Caveat", cursive;
+  --font-hand-patrick: "Patrick Hand", cursive;
+  --font-hand-architect: "Architects Daughter", cursive;
+  --font-hand-kalam: "Kalam", cursive;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    overscroll-behavior: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom thin scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(138, 113, 119, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 113, 119, 0.45);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(181, 168, 178, 0.2);
+}
+
+/* Paper background patterns for Handwriting Studio */
+.paper-ruled {
+  background-color: #fefdfb;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 31px,
+    rgba(147, 197, 253, 0.45) 32px
+  );
+  background-position: 0 56px;
+}
+
+.paper-grid {
+  background-color: #fcfcfa;
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.22) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.paper-dotted {
+  background-color: #fdfcf8;
+  background-image: radial-gradient(rgba(100, 116, 139, 0.35) 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+.paper-parchment {
+  background-color: #f6eedc;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(180, 130, 70, 0.08), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(150, 100, 50, 0.07), transparent 55%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 31px,
+      rgba(161, 130, 92, 0.22) 32px
+    );
+  background-position: 0 0, 0 0, 0 56px;
+}
+
+.paper-blank {
+  background-color: #ffffff;
+}
+
+/* Print only the handwritten sheet when user clicks Export PDF / Print */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #handwritten-printable-sheet,
+  #handwritten-printable-sheet * {
+    visibility: visible;
+  }
+  #handwritten-printable-sheet {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+  }
+}
