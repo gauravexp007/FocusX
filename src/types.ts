@@ -27,6 +27,8 @@ export interface AcademicTask {
 
 export type BookShelf = 'reading' | 'want' | 'finished' | 'textbook';
 
+export type RibbonColorId = 'crimson' | 'emerald' | 'gold' | 'royal' | 'plum';
+
 export interface BookItem {
   id: string;
   title: string;
@@ -39,6 +41,11 @@ export interface BookItem {
   coverVariant: 'kahneman' | 'kleppmann' | 'newport' | 'neuro' | 'algorithms' | 'macro' | 'atomic' | 'design';
   rating?: number;
   lastRead: string;
+  sourceType?: 'builtin' | 'pdf' | 'text' | 'markdown';
+  fileName?: string;
+  coverImageUrl?: string;
+  ribbonColor?: RibbonColorId;
+  bookmarkedPages?: number[];
 }
 
 export interface BookHighlight {
@@ -48,6 +55,110 @@ export interface BookHighlight {
   quote: string;
   note?: string;
   createdAt: string;
+}
+
+export type ReaderTool =
+  | 'flip'
+  | 'highlighter'
+  | 'pen'
+  | 'pencil'
+  | 'shape'
+  | 'sticker'
+  | 'eraser';
+
+export type ShapeKind = 'rect' | 'ellipse' | 'arrow' | 'line' | 'star' | 'callout';
+
+export type StickerKind =
+  | 'star'
+  | 'aha'
+  | 'exam'
+  | 'heart'
+  | 'flag'
+  | 'question'
+  | 'brain'
+  | 'fire'
+  | 'check'
+  | 'coffee'
+  | 'note';
+
+export interface NormalizedPoint {
+  x: number;
+  y: number;
+}
+
+export interface DrawingStroke {
+  id: string;
+  tool: 'highlighter' | 'pen' | 'pencil';
+  color: string;
+  width: number;
+  opacity: number;
+  points: NormalizedPoint[];
+}
+
+export interface ReaderShape {
+  id: string;
+  kind: ShapeKind;
+  color: string;
+  strokeWidth: number;
+  filled: boolean;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface ReaderSticker {
+  id: string;
+  kind: StickerKind;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  text?: string;
+}
+
+export interface TextHighlightRect {
+  id: string;
+  x: number; // 0..1 normalized
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  opacity: number;
+}
+
+export interface PdfTextLineBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface PageBookmarkMeta {
+  page: number;
+  label: string;
+  color: RibbonColorId;
+  createdAt: string;
+}
+
+export interface PageAnnotationData {
+  strokes: DrawingStroke[];
+  highlights?: TextHighlightRect[];
+  shapes: ReaderShape[];
+  stickers: ReaderSticker[];
+}
+
+export interface BookAnnotationStore {
+  pages: Record<number, PageAnnotationData>;
+  bookmarks: Record<number, PageBookmarkMeta>;
+}
+
+export interface BookContentPage {
+  pageNumber: number;
+  chapter?: string;
+  heading?: string;
+  paragraphs: string[];
+  calloutQuote?: string;
 }
 
 export type NoteField = 'STEM' | 'Medicine & Bio' | 'CS & AI' | 'Humanities' | 'Economics';
@@ -102,10 +213,13 @@ export interface HandwritingArtifact {
 export interface GameScores {
   math24: number;
   math24Streak: number;
+  mathSprintBest?: number;
+  mathSprintHighQpm?: number;
   stroopBestMs: number;
   stroopHigh: number;
   memoryBestLevel: number;
   logicSolved: number;
+  syllogismSolved?: number;
   totalPulse: number;
 }
 

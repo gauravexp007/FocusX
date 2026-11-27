@@ -122,6 +122,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 499,
     activeChapterPages: 50,
     coverVariant: 'kahneman',
+    ribbonColor: 'crimson',
+    bookmarkedPages: [287, 324],
     rating: 5,
     lastRead: 'Today, 08:40',
   },
@@ -135,6 +137,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 616,
     activeChapterPages: 45,
     coverVariant: 'kleppmann',
+    ribbonColor: 'gold',
+    bookmarkedPages: [154, 180],
     rating: 5,
     lastRead: 'Yesterday',
   },
@@ -148,6 +152,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 296,
     activeChapterPages: 32,
     coverVariant: 'newport',
+    ribbonColor: 'emerald',
+    bookmarkedPages: [78, 210],
     rating: 4,
     lastRead: '2 days ago',
   },
@@ -161,6 +167,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 1180,
     activeChapterPages: 64,
     coverVariant: 'neuro',
+    ribbonColor: 'plum',
+    bookmarkedPages: [412],
     lastRead: '3 days ago',
   },
   {
@@ -173,6 +181,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 1292,
     activeChapterPages: 48,
     coverVariant: 'algorithms',
+    ribbonColor: 'royal',
+    bookmarkedPages: [310],
     lastRead: 'Last week',
   },
   {
@@ -185,6 +195,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 368,
     activeChapterPages: 0,
     coverVariant: 'design',
+    ribbonColor: 'gold',
+    bookmarkedPages: [368],
     rating: 5,
     lastRead: 'Nov 12',
   },
@@ -198,6 +210,8 @@ export const INITIAL_BOOKS: BookItem[] = [
     totalPages: 320,
     activeChapterPages: 0,
     coverVariant: 'atomic',
+    ribbonColor: 'crimson',
+    bookmarkedPages: [320],
     rating: 5,
     lastRead: 'Oct 28',
   },
@@ -207,10 +221,11 @@ export const INITIAL_BOOKS: BookItem[] = [
     author: 'N. Gregory Mankiw',
     category: 'Economics',
     shelf: 'want',
-    currentPage: 0,
+    currentPage: 1,
     totalPages: 580,
     activeChapterPages: 30,
     coverVariant: 'macro',
+    ribbonColor: 'emerald',
     lastRead: 'Queued',
   },
 ];
@@ -627,7 +642,7 @@ export const LOGIC_PUZZLES: LogicPuzzle[] = [
     ],
     correctIndex: 0,
     explanation:
-      'If Maya were a Knave, her statement ("at least one is a Knave") would be true — a contradiction! So Maya must be a Knight, making her statement true, which forces Leo to be a Knave.',
+      'If Maya were a Knave, her statement ("at least one is a Knave") would be true — a contradiction. So Maya must be a Knight, making her statement true, which forces Leo to be a Knave.',
   },
   {
     id: 'logic-2',
@@ -638,33 +653,159 @@ export const LOGIC_PUZZLES: LogicPuzzle[] = [
     options: ['Room A', 'Room B', 'Room C', 'Cannot be determined'],
     correctIndex: 0,
     explanation:
-      'If the desk is in Room A, then A is false, C is false, and B ("not in B") is true — giving exactly one true sign! Putting it in B makes A & C true (2 true); putting it in C makes B & C true (2 true).',
+      'If the desk is in Room A, then A is false, C is false, and B ("not in B") is true — giving exactly one true sign. Placing it in B makes A and C both true; placing it in C makes B and C both true.',
   },
   {
     id: 'logic-3',
-    title: 'The Seminar Syllogism',
+    title: 'The Twin Archivists',
     scenario:
-      'Premise 1: All honors fellows attend the Friday colloquium. Premise 2: No one who attends the Friday colloquium skips the lab briefing. Premise 3: Jordan skipped the lab briefing.',
-    question: 'Which conclusion is strictly valid?',
+      'Two archivists, Nora and Felix, stand by the rare books vault. Nora says: "We are both Knaves." Felix remains silent.',
+    question: 'What are Nora and Felix?',
     options: [
-      'Jordan is definitely not an honors fellow',
-      'Jordan attended the Friday colloquium late',
-      'Some honors fellows skip the lab briefing',
-      'Jordan is an honors fellow in another department',
+      'Nora is a Knave, Felix is a Knight',
+      'Nora is a Knight, Felix is a Knave',
+      'Both are Knaves',
+      'Both are Knights',
     ],
     correctIndex: 0,
     explanation:
-      'By contrapositive: Skipping the lab briefing implies Jordan did not attend the Friday colloquium. Not attending the colloquium implies Jordan cannot be an honors fellow.',
+      'No Knight can claim to be a Knave, so Nora must be a Knave. Because a Knave always lies, "we are both Knaves" must be false — which forces Felix to be a Knight.',
   },
   {
     id: 'logic-4',
-    title: 'The Two Envelopes Paradox Variant',
+    title: 'The Timed Proof Podium',
     scenario:
-      'Three scholars—Priya, Sam, and Owen—finished a timed proof in 1st, 2nd, and 3rd place (no ties). Priya says: "I was not 1st." Sam says: "I was 3rd." Owen says: "I was not 3rd." Exactly ONE scholar lied.',
+      'Three scholars—Priya, Sam, and Owen—finished a proof sprint in 1st, 2nd, and 3rd place (no ties). Priya says: "I was not 1st." Sam says: "I was 3rd." Owen says: "I was not 3rd." Exactly ONE scholar lied.',
     question: 'Who finished in 1st place?',
     options: ['Priya', 'Sam', 'Owen', 'Not enough information'],
     correctIndex: 0,
     explanation:
-      'If Sam lied (not 3rd), then Priya (not 1st) and Owen (not 3rd) both tell the truth, forcing Priya to be 3rd, so Owen & Sam are 1st/2nd — wait: let’s check if Priya lied! If Priya lied, Priya is 1st, Sam is 3rd (truth), Owen is 2nd (truth, not 3rd). That uniquely forces Priya = 1st!',
+      'If Priya lied, then Priya finished 1st, Sam tells the truth (3rd), and Owen tells the truth (2nd, not 3rd) — exactly one liar. If Sam lied, Owen cannot be 3rd either, forcing Priya to be 3rd, which makes both Sam and Owen conflict.',
+  },
+  {
+    id: 'logic-5',
+    title: 'The Exam Key Box',
+    scenario:
+      'Two locked boxes sit on a desk, and exactly ONE box contains the exam key. Gold Box says: "The key is in the Silver Box." Silver Box says: "Exactly one of these two labels is true."',
+    question: 'Which box contains the key?',
+    options: [
+      'The Gold Box',
+      'The Silver Box',
+      'Both boxes contain a key',
+      'Cannot be determined',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Case 1: Silver is TRUE → exactly one label is true, so Gold must be FALSE → key is not in Silver → key is in the Gold Box. Case 2: Silver is FALSE → either 0 or 2 labels are true; since Silver is false, Gold must also be FALSE → key is not in Silver → key is in the Gold Box. Both cases uniquely place the key in the Gold Box.',
+  },
+  {
+    id: 'logic-6',
+    title: 'The Honest Witness',
+    scenario:
+      'Three students — Kai, Tess, and Omar — are Knights or Knaves. Kai says: "Tess is a Knave." Tess says: "Kai and Omar are of the same type."',
+    question: 'What is Omar?',
+    options: [
+      'Omar is definitely a Knave',
+      'Omar is definitely a Knight',
+      'Omar is the same type as Kai',
+      'Cannot be determined',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Case 1: Kai is a Knight → Tess is a Knave → Tess lies, so Kai & Omar are DIFFERENT → Omar is a Knave. Case 2: Kai is a Knave → Tess is a Knight → Tess tells the truth, so Kai & Omar are the SAME → Omar is a Knave. In every valid case, Omar is a Knave!',
   },
 ];
+
+export interface SyllogismPuzzle {
+  id: string;
+  topic: string;
+  premise1: string;
+  premise2: string;
+  conclusion: string;
+  verdict: 'valid' | 'invalid' | 'undetermined';
+  proof: string;
+}
+
+export const SYLLOGISM_PUZZLES: SyllogismPuzzle[] = [
+  {
+    id: 'syl-1',
+    topic: 'Categorical Transitivity',
+    premise1: 'All honors fellows attend the Friday research colloquium.',
+    premise2: 'No one who attends the Friday research colloquium skips the lab briefing.',
+    conclusion: 'Therefore, no honors fellow skips the lab briefing.',
+    verdict: 'valid',
+    proof:
+      'Honors Fellows ⊆ Colloquium Attendees, and Colloquium Attendees ∩ Briefing Skippers = ∅. Thus Honors Fellows ∩ Briefing Skippers = ∅ (strictly valid Celarent syllogism).',
+  },
+  {
+    id: 'syl-2',
+    topic: 'Undistributed Middle Fallacy',
+    premise1: 'All quantum mechanics textbooks require multivariable calculus.',
+    premise2: 'All fluid dynamics textbooks require multivariable calculus.',
+    conclusion: 'Therefore, some quantum mechanics textbooks are fluid dynamics textbooks.',
+    verdict: 'invalid',
+    proof:
+      'Sharing a superset (requiring calculus) never forces two subsets to overlap. This is the classic Fallacy of the Undistributed Middle.',
+  },
+  {
+    id: 'syl-3',
+    topic: 'Existential Quantifier Scope',
+    premise1: 'Some cognitive science majors play competitive chess.',
+    premise2: 'All competitive chess players train pattern recognition weekly.',
+    conclusion: 'Therefore, some cognitive science majors train pattern recognition weekly.',
+    verdict: 'valid',
+    proof:
+      'At least one cognitive science major belongs to the set of chess players, and every member of that set trains pattern recognition weekly (valid Darii syllogism).',
+  },
+  {
+    id: 'syl-4',
+    topic: 'Affirming the Consequent',
+    premise1: 'If a proof uses induction, it establishes a base case.',
+    premise2: 'Elena’s proof establishes a base case.',
+    conclusion: 'Therefore, Elena’s proof uses induction.',
+    verdict: 'invalid',
+    proof:
+      'From P → Q and Q, you cannot infer P. Other proof techniques (like recursive definitions or well-ordering checks) can also establish a base case.',
+  },
+  {
+    id: 'syl-5',
+    topic: 'Modus Tollens Contrapositive',
+    premise1: 'If an algorithm runs in O(1) space, it cannot allocate an N-element auxiliary array.',
+    premise2: 'Merge Sort allocates an N-element auxiliary array.',
+    conclusion: 'Therefore, Merge Sort does not run in O(1) space.',
+    verdict: 'valid',
+    proof:
+      'From P → ¬Q and Q, Modus Tollens rigorously deduces ¬P. Standard top-down Merge Sort uses O(N) auxiliary space.',
+  },
+  {
+    id: 'syl-6',
+    topic: 'Partial Overlap Ambiguity',
+    premise1: 'Some graduate seminars are held in the East Wing.',
+    premise2: 'Some rooms in the East Wing have chalkboard walls.',
+    conclusion: 'Therefore, at least one graduate seminar is held in a room with chalkboard walls.',
+    verdict: 'undetermined',
+    proof:
+      'The seminars in the East Wing could occupy rooms WITHOUT chalkboard walls while other East Wing rooms have chalkboards. The premises neither guarantee nor rule out overlap.',
+  },
+  {
+    id: 'syl-7',
+    topic: 'Universal Negative Conversion',
+    premise1: 'No prime number greater than 2 is even.',
+    premise2: 'Every multiple of 6 is even.',
+    conclusion: 'Therefore, no multiple of 6 is a prime number greater than 2.',
+    verdict: 'valid',
+    proof:
+      'Multiples of 6 ⊆ Even numbers, and Even numbers are disjoint from Primes > 2. Thus Multiples of 6 and Primes > 2 are completely disjoint (valid Camestres syllogism).',
+  },
+  {
+    id: 'syl-8',
+    topic: 'Denying the Antecedent',
+    premise1: 'All students who finish the mock exam early review their error log.',
+    premise2: 'Marcus did not finish the mock exam early.',
+    conclusion: 'Therefore, Marcus did not review his error log.',
+    verdict: 'invalid',
+    proof:
+      'Finishing early is sufficient to review the error log, not necessary. Marcus could still review his error log afterward — this is Denying the Antecedent.',
+  },
+];
+

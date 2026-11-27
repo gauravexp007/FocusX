@@ -38,6 +38,7 @@ import {
   SegmentedControl,
   staggerContainer,
 } from './MotionPrimitives';
+import { GsapMagneticButton, GsapSplitHeading } from '../utils/gsapMotion';
 
 interface OverviewSectionProps {
   preferences: UserPreferences;
@@ -164,9 +165,12 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               </span>
             </div>
 
-            <h1 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tracking-tight leading-tight">
-              Welcome back, {firstName}
-            </h1>
+            <GsapSplitHeading
+              as="h1"
+              text={`Welcome back, ${firstName}`}
+              highlightLastWord
+              className="font-display text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tracking-tight leading-tight"
+            />
             <p className="text-sm text-[#574146] dark:text-[#C4B7C1] leading-relaxed">
               You have completed{' '}
               <strong className="font-semibold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
@@ -180,16 +184,14 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <motion.button
+              <GsapMagneticButton
                 type="button"
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.96 }}
                 onClick={onStartQuickPomodoro}
                 className="inline-flex items-center gap-2 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs"
               >
                 <Play className="w-4 h-4 fill-current" />
                 Start Pomodoro ({preferences.defaultFocusMinutes}m)
-              </motion.button>
+              </GsapMagneticButton>
               <motion.button
                 type="button"
                 whileHover={{ y: -1 }}
@@ -789,7 +791,12 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
 
           <div className="flex flex-col gap-4">
             {readingBooks.map((book) => {
-              const pct = Math.min(100, Math.round((book.currentPage / book.totalPages) * 100));
+              const total = Math.max(1, book.totalPages);
+              const read = Math.max(0, Math.min(total, book.currentPage || 0));
+              const exactFrac = read / total;
+              const rawPct = exactFrac * 100;
+              const pctLabel =
+                rawPct === 0 || rawPct === 100 ? `${Math.round(rawPct)}%` : `${Number(rawPct.toFixed(1))}%`;
               return (
                 <div key={book.id} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-2 text-sm">
@@ -803,13 +810,13 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                       </span>
                     </div>
                     <span className="text-xs font-mono font-semibold text-[#006948] dark:text-[#6EE7B7] tabular-nums shrink-0">
-                      {book.currentPage}/{book.totalPages} p · {pct}%
+                      {read}/{total} p · {pctLabel}
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-[#F0E5EB] dark:bg-[#2E2836] overflow-hidden">
                     <motion.div
                       initial={{ scaleX: 0 }}
-                      animate={{ scaleX: pct / 100 }}
+                      animate={{ scaleX: exactFrac }}
                       transition={{ duration: 0.75, ease: FLOW_EASE }}
                       style={{ transformOrigin: 'left' }}
                       className="h-full w-full rounded-full bg-[#006948] dark:bg-[#58CD9B]"

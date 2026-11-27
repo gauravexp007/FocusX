@@ -2,9 +2,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-display: "Comfortaa", "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Comfortaa", "Lexend", system-ui, sans-serif;
+  --font-sans: "Lexend", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Lexend", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-hand-caveat: "Caveat", cursive;
   --font-hand-patrick: "Patrick Hand", cursive;
   --font-hand-architect: "Architects Daughter", cursive;
@@ -21,61 +21,86 @@
     overscroll-behavior: none;
     margin: 0;
     padding: 0;
+    font-family: var(--font-sans);
   }
 
-  h1, h2, h3 {
+  h1 {
     text-wrap: balance;
   }
 
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
+  p, li, blockquote, input, select, textarea, button {
+    font-family: "Lexend", system-ui, -apple-system, sans-serif;
   }
 }
 
-/* FocusX Ambient Canvas Surface */
+/* Enforce Lexend on all subheadings (h2, h3, h4), sentences, and numbers */
+h2,
+h3,
+h4,
+.tabular-nums,
+.font-mono {
+  font-family: "Lexend", system-ui, -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+  letter-spacing: -0.015em;
+}
+
+/* FocusX Luminous Gradient Backdrop Behind Blocks */
 .focusx-canvas {
-  background-color: #fff8fb;
+  background-color: #f6eef9;
   background-image:
-    radial-gradient(ellipse 65% 45% at 15% -5%, rgba(255, 185, 249, 0.24), transparent 65%),
-    radial-gradient(ellipse 50% 40% at 88% 4%, rgba(133, 248, 195, 0.16), transparent 60%),
-    radial-gradient(ellipse 45% 35% at 70% 90%, rgba(186, 232, 255, 0.16), transparent 60%);
+    radial-gradient(ellipse 68% 52% at 8% 0%, rgba(255, 168, 238, 0.52), transparent 62%),
+    radial-gradient(ellipse 58% 48% at 92% 6%, rgba(110, 231, 183, 0.44), transparent 58%),
+    radial-gradient(ellipse 55% 48% at 82% 92%, rgba(125, 211, 252, 0.44), transparent 60%),
+    radial-gradient(ellipse 52% 45% at 18% 88%, rgba(196, 181, 253, 0.42), transparent 60%),
+    linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 36%, #ecfdf5 72%, #eff6ff 100%);
   background-attachment: fixed;
 }
 
 .dark .focusx-canvas {
-  background-color: #110e15;
+  background-color: #0e0b16;
   background-image:
-    radial-gradient(ellipse 65% 45% at 15% -5%, rgba(245, 100, 152, 0.12), transparent 65%),
-    radial-gradient(ellipse 50% 40% at 88% 4%, rgba(88, 205, 155, 0.09), transparent 60%),
-    radial-gradient(ellipse 45% 35% at 70% 90%, rgba(56, 189, 248, 0.07), transparent 60%);
+    radial-gradient(ellipse 68% 52% at 10% 0%, rgba(245, 100, 152, 0.24), transparent 60%),
+    radial-gradient(ellipse 58% 48% at 92% 8%, rgba(52, 211, 153, 0.18), transparent 56%),
+    radial-gradient(ellipse 55% 48% at 80% 92%, rgba(56, 189, 248, 0.18), transparent 58%),
+    radial-gradient(ellipse 52% 45% at 18% 88%, rgba(139, 92, 246, 0.22), transparent 58%),
+    linear-gradient(135deg, #130d1d 0%, #171026 38%, #0d1a1c 74%, #101426 100%);
   background-attachment: fixed;
 }
 
-/* Refined Single-Elevation Surface System */
+/* Refined Single-Elevation Glass Surface System Over Gradient Backdrop */
 .fx-card {
-  background-color: rgba(255, 255, 255, 0.92);
-  border: 1px solid #eae0e5;
-  box-shadow: 0 1px 2px rgba(31, 26, 30, 0.03), 0 8px 24px -16px rgba(163, 38, 91, 0.08);
-  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 2px 6px rgba(31, 26, 30, 0.04), 0 12px 30px -16px rgba(120, 40, 110, 0.14);
+  backdrop-filter: blur(18px);
 }
 
 .dark .fx-card {
-  background-color: rgba(27, 23, 34, 0.88);
-  border: 1px solid #2e2837;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px -18px rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(12px);
+  background-color: rgba(24, 20, 34, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 16px 36px -18px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(18px);
 }
 
 .fx-surface-tinted {
-  background: linear-gradient(145deg, rgba(252, 241, 246, 0.96), rgba(255, 248, 251, 0.92));
-  border: 1px solid #eae0e5;
-  box-shadow: 0 1px 2px rgba(31, 26, 30, 0.03), 0 10px 30px -18px rgba(163, 38, 91, 0.12);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(252, 241, 248, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 6px rgba(31, 26, 30, 0.04), 0 14px 34px -18px rgba(163, 38, 91, 0.18);
+  backdrop-filter: blur(18px);
 }
 
 .dark .fx-surface-tinted {
-  background: linear-gradient(145deg, rgba(31, 25, 40, 0.95), rgba(23, 20, 29, 0.92));
-  border: 1px solid #312a3d;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -18px rgba(0, 0, 0, 0.6);
+  background: linear-gradient(145deg, rgba(33, 25, 46, 0.88), rgba(22, 19, 32, 0.84));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 16px 36px -18px rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(18px);
 }
 
 /* Custom thin scrollbars */
@@ -188,3 +213,71 @@
     border-radius: 0 !important;
   }
 }
+
+/* Interactive 3D Book Reader & Silk Ribbon Bookmark */
+.book-stage-3d {
+  perspective: 2400px;
+  perspective-origin: 50% 48%;
+}
+
+.book-cover-3d {
+  perspective: 1100px;
+  transform-style: preserve-3d;
+}
+
+.book-leaf-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.book-leaf-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.book-leaf-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
+}
+
+.ribbon-swallowtail {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+.ribbon-silk-weave {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, transparent 45%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.reader-paper-cream {
+  background-color: #fbf6eb;
+  background-image: radial-gradient(circle at 20% 15%, rgba(217, 179, 120, 0.08), transparent 55%),
+    radial-gradient(circle at 80% 85%, rgba(160, 125, 80, 0.07), transparent 55%);
+  color: #231d19;
+}
+
+.reader-paper-crisp {
+  background-color: #ffffff;
+  color: #18181b;
+}
+
+.reader-paper-sepia {
+  background-color: #f3e6cf;
+  background-image: radial-gradient(circle at 30% 20%, rgba(161, 114, 58, 0.1), transparent 60%);
+  color: #2c2015;
+}
+
+.reader-paper-midnight {
+  background-color: #181622;
+  background-image: radial-gradient(circle at 50% 0%, rgba(110, 231, 183, 0.05), transparent 60%);
+  color: #ece6f0;
+}
+

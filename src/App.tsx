@@ -28,6 +28,7 @@ import {
   HandwritingFontId,
   InkColorId,
   PaperStyleId,
+  RibbonColorId,
   SectionId,
   SoundscapeId,
   StudyNote,
@@ -366,10 +367,41 @@ export default function App() {
     );
   };
 
-  const handleAddBook = (newBook: Omit<BookItem, 'id'>) => {
-    setBooks((prev) => [{ ...newBook, id: `book-${Date.now()}` }, ...prev]);
-    showToast(`Added "${newBook.title}" to your bookshelf.`);
-  };
+  const handleAddBook = useCallback(
+    (newBook: BookItem) => {
+      setBooks((prev) => [newBook, ...prev]);
+      showToast(`Added "${newBook.title}" to your bookshelf.`);
+    },
+    [setBooks, showToast]
+  );
+
+  const handleSyncBookState = useCallback(
+    (
+      bookId: string,
+      patch: { currentPage: number; bookmarkedPages: number[]; ribbonColor?: RibbonColorId }
+    ) => {
+      setBooks((prev) =>
+        prev.map((b) => {
+          if (b.id !== bookId) return b;
+          const nextPage = Math.max(1, Math.min(b.totalPages, patch.currentPage));
+          const samePage = b.currentPage === nextPage;
+          const sameRibbon = !patch.ribbonColor || b.ribbonColor === patch.ribbonColor;
+          const sameBm =
+            (b.bookmarkedPages?.length || 0) === patch.bookmarkedPages.length &&
+            patch.bookmarkedPages.every((p, idx) => b.bookmarkedPages?.[idx] === p);
+          if (samePage && sameRibbon && sameBm) return b;
+          return {
+            ...b,
+            currentPage: nextPage,
+            bookmarkedPages: patch.bookmarkedPages,
+            ribbonColor: patch.ribbonColor ?? b.ribbonColor,
+            lastRead: 'Just now',
+          };
+        })
+      );
+    },
+    [setBooks]
+  );
 
   const handleAddHighlight = (newHl: Omit<BookHighlight, 'id'>) => {
     setHighlights((prev) => [{ ...newHl, id: `hl-${Date.now()}` }, ...prev]);
@@ -596,8 +628,10 @@ export default function App() {
                     onLogPages={handleLogPages}
                     onChangeShelf={handleChangeBookShelf}
                     onAddBook={handleAddBook}
+                    onSyncBookState={handleSyncBookState}
                     onAddHighlight={handleAddHighlight}
                     onStartReadingSession={handleStartReadingSession}
+                    onNotify={showToast}
                   />
                 )}
 
