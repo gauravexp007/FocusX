@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   BookOpen,
   Headphones,
@@ -11,6 +12,14 @@ import {
 } from 'lucide-react';
 import { BookHighlight, BookItem, BookShelf, UserPreferences } from '../types';
 import { BookCoverArt } from './BookCoverArt';
+import {
+  AnimatedModal,
+  FLOW_EASE,
+  FLOW_SPRING,
+  flowItem,
+  SegmentedControl,
+  staggerContainer,
+} from './MotionPrimitives';
 
 interface ReadingTrackerSectionProps {
   books: BookItem[];
@@ -50,7 +59,6 @@ const BookDonut: React.FC<{ book: BookItem }> = ({ book }) => {
   return (
     <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-        {/* Remaining base */}
         <circle
           cx="50"
           cy="50"
@@ -62,7 +70,6 @@ const BookDonut: React.FC<{ book: BookItem }> = ({ book }) => {
           onMouseEnter={() => setHoverInfo({ val: `${afterChapter}p`, lbl: 'Remaining' })}
           onMouseLeave={() => setHoverInfo(null)}
         />
-        {/* Active Chapter segment */}
         {activeLen > 0 && (
           <circle
             cx="50"
@@ -73,12 +80,11 @@ const BookDonut: React.FC<{ book: BookItem }> = ({ book }) => {
             strokeWidth="15"
             strokeDasharray={`${activeLen} ${c - activeLen}`}
             strokeDashoffset={-readLen}
-            className="cursor-pointer transition-all duration-300"
+            className="cursor-pointer transition-all duration-500"
             onMouseEnter={() => setHoverInfo({ val: `${activeChapter}p`, lbl: 'Active Ch.' })}
             onMouseLeave={() => setHoverInfo(null)}
           />
         )}
-        {/* Read segment */}
         {readLen > 0 && (
           <circle
             cx="50"
@@ -89,7 +95,7 @@ const BookDonut: React.FC<{ book: BookItem }> = ({ book }) => {
             strokeWidth="15"
             strokeDasharray={`${readLen} ${c - readLen}`}
             strokeDashoffset={0}
-            className="cursor-pointer transition-all duration-300 dark:stroke-[#34D399]"
+            className="cursor-pointer transition-all duration-500 dark:stroke-[#34D399]"
             onMouseEnter={() => setHoverInfo({ val: `${book.currentPage}p`, lbl: 'Read' })}
             onMouseLeave={() => setHoverInfo(null)}
           />
@@ -124,14 +130,12 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [showAddHighlight, setShowAddHighlight] = useState(false);
 
-  // Add Book Form
   const [newTitle, setNewTitle] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
   const [newCategory, setNewCategory] = useState('Cognitive Science');
   const [newPages, setNewPages] = useState(320);
   const [newShelf, setNewShelf] = useState<BookShelf>('reading');
 
-  // Add Highlight Form
   const [hlBook, setHlBook] = useState(books[0]?.title || 'Thinking, Fast and Slow');
   const [hlPage, setHlPage] = useState(120);
   const [hlQuote, setHlQuote] = useState('');
@@ -153,7 +157,7 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
     });
   }, [books, activeShelf, effectiveSearch]);
 
-  const finishedCount = books.filter((b) => b.shelf === 'finished').length + 16; // includes earlier year volumes
+  const finishedCount = books.filter((b) => b.shelf === 'finished').length + 16;
   const goalPct = Math.min(100, Math.round((finishedCount / preferences.readingGoalBooks) * 100));
 
   const handleCreateBook = (e: React.FormEvent) => {
@@ -198,9 +202,14 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header & Shelf Bar */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col gap-6"
+    >
+      {/* Header */}
+      <motion.div variants={flowItem} className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
             Reading Tracker
@@ -210,19 +219,21 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
           </p>
         </div>
 
-        <button
+        <motion.button
           type="button"
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => setShowAddBookModal(true)}
-          className="inline-flex items-center gap-1.5 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer whitespace-nowrap shadow-xs"
+          className="inline-flex items-center gap-1.5 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs"
         >
           <Plus className="w-4 h-4" />
           Add New Book
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Shelf Filter + Search Card */}
-      <div className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-4 flex flex-col gap-3">
-        <div className="flex items-center bg-[#FCF1F6] dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] rounded-xl px-3.5 py-2">
+      <motion.div variants={flowItem} className="fx-card rounded-2xl p-4 flex flex-col gap-3">
+        <div className="flex items-center bg-[#FCF1F6] dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] rounded-xl px-3.5 py-2 focus-within:border-[#A3265B] transition-colors">
           <Search className="w-4 h-4 text-[#8A7177] mr-2 shrink-0" />
           <input
             type="text"
@@ -233,155 +244,163 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {SHELF_TABS.map((tab) => {
-            const count = books.filter((b) => b.shelf === tab.id).length;
-            const active = activeShelf === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveShelf(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-                  active
-                    ? 'bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] shadow-xs'
-                    : 'bg-[#FCF1F6] dark:bg-[#231E2B] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] dark:hover:text-white'
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span className="font-mono text-[11px] opacity-80 tabular-nums">{count}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        <SegmentedControl
+          layoutId="reading-shelf-tabs"
+          variant="rose"
+          size="md"
+          value={activeShelf}
+          onChange={setActiveShelf}
+          options={SHELF_TABS.map((t) => ({
+            id: t.id,
+            label: t.label,
+            count: books.filter((b) => b.shelf === t.id).length,
+          }))}
+        />
+      </motion.div>
 
-      {/* Main Grid: Bookshelf (8 cols) + Streak & Highlights Sidebar (4 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Grid */}
+      <motion.div variants={flowItem} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Book Cards */}
         <div className="lg:col-span-8 flex flex-col gap-4">
-          {filteredBooks.length === 0 ? (
-            <div className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-10 text-center flex flex-col items-center gap-3">
-              <BookOpen className="w-8 h-8 text-[#8A7177]" />
-              <p className="font-display text-base font-semibold text-[#1F1A1E] dark:text-[#F5EFF3]">
-                No books on this shelf yet
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowAddBookModal(true)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] cursor-pointer"
-              >
-                Add a Volume
-              </button>
-            </div>
-          ) : (
-            filteredBooks.map((book) => {
-              const pct = Math.min(100, Math.round((book.currentPage / book.totalPages) * 100));
-              const remaining = Math.max(0, book.totalPages - book.currentPage);
-              return (
-                <article
-                  key={book.id}
-                  className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center transition-shadow hover:shadow-sm"
-                >
-                  <BookCoverArt
-                    variant={book.coverVariant}
-                    title={book.title}
-                    author={book.author}
-                    className="w-24 h-36 sm:w-28 sm:h-40"
-                  />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`${activeShelf}-${effectiveSearch}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: FLOW_EASE }}
+              className="flex flex-col gap-4"
+            >
+              {filteredBooks.length === 0 ? (
+                <div className="fx-card rounded-2xl p-10 text-center flex flex-col items-center gap-3">
+                  <BookOpen className="w-8 h-8 text-[#8A7177]" />
+                  <p className="font-display text-base font-semibold text-[#1F1A1E] dark:text-[#F5EFF3]">
+                    No books on this shelf yet
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddBookModal(true)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] cursor-pointer"
+                  >
+                    Add a Volume
+                  </button>
+                </div>
+              ) : (
+                filteredBooks.map((book) => {
+                  const pct = Math.min(100, Math.round((book.currentPage / book.totalPages) * 100));
+                  const remaining = Math.max(0, book.totalPages - book.currentPage);
+                  return (
+                    <motion.article
+                      layout
+                      key={book.id}
+                      whileHover={{ y: -2 }}
+                      transition={FLOW_SPRING}
+                      className="group fx-card rounded-2xl p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center hover:border-[#006948]/40 dark:hover:border-[#6EE7B7]/35 transition-colors"
+                    >
+                      <motion.div whileHover={{ rotate: -2, scale: 1.03 }} transition={FLOW_SPRING} className="shrink-0">
+                        <BookCoverArt
+                          variant={book.coverVariant}
+                          title={book.title}
+                          author={book.author}
+                          className="w-24 h-36 sm:w-28 sm:h-40"
+                        />
+                      </motion.div>
 
-                  <div className="flex-1 min-w-0 w-full flex flex-col gap-3">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="text-xs text-[#8A7177] dark:text-[#9D8F99]">
-                          {book.category} · Last read {book.lastRead}
+                      <div className="flex-1 min-w-0 w-full flex flex-col gap-3">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-xs text-[#8A7177] dark:text-[#9D8F99]">
+                              {book.category} · Last read {book.lastRead}
+                            </div>
+                            <h3 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-0.5 truncate">
+                              {book.title}
+                            </h3>
+                            <p className="text-xs text-[#574146] dark:text-[#B5A8B2]">{book.author}</p>
+                          </div>
+                          <span className="text-xs font-mono font-semibold text-[#006948] dark:text-[#6EE7B7] tabular-nums shrink-0">
+                            {pct}% complete
+                          </span>
                         </div>
-                        <h3 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-0.5 truncate">
-                          {book.title}
-                        </h3>
-                        <p className="text-xs text-[#574146] dark:text-[#B5A8B2]">{book.author}</p>
-                      </div>
-                      <span className="text-xs font-mono font-semibold text-[#006948] dark:text-[#6EE7B7] tabular-nums shrink-0">
-                        {pct}% complete
-                      </span>
-                    </div>
 
-                    {/* Interactive Donut & Breakdown */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#FCF1F6] dark:bg-[#231E2B] rounded-xl p-3.5">
-                      <BookDonut book={book} />
-                      <div className="flex flex-col gap-1.5 flex-1 text-xs">
-                        <div className="font-semibold text-[#1F1A1E] dark:text-[#F5EFF3] font-mono tabular-nums">
-                          {book.currentPage} / {book.totalPages} pages
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#FCF1F6] dark:bg-[#231E2B] rounded-xl p-3.5">
+                          <BookDonut book={book} />
+                          <div className="flex flex-col gap-1.5 flex-1 text-xs">
+                            <div className="font-semibold text-[#1F1A1E] dark:text-[#F5EFF3] font-mono tabular-nums">
+                              {book.currentPage} / {book.totalPages} pages
+                            </div>
+                            <div className="flex items-center gap-2 text-[#574146] dark:text-[#B5A8B2]">
+                              <span className="w-2 h-2 rounded-full bg-[#065F46] dark:bg-[#34D399]" />
+                              <span>Read · {book.currentPage} pgs</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[#574146] dark:text-[#B5A8B2]">
+                              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+                              <span>Active Chapter · {Math.min(remaining, book.activeChapterPages)} pgs</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[#574146] dark:text-[#B5A8B2]">
+                              <span className="w-2 h-2 rounded-full bg-[#A7F3D0] dark:bg-[#1E4538]" />
+                              <span>Remaining · {remaining} pgs left</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[#574146] dark:text-[#B5A8B2]">
-                          <span className="w-2 h-2 rounded-full bg-[#065F46] dark:bg-[#34D399]" />
-                          <span>Read · {book.currentPage} pgs</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[#574146] dark:text-[#B5A8B2]">
-                          <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-                          <span>Active Chapter · {Math.min(remaining, book.activeChapterPages)} pgs</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[#574146] dark:text-[#B5A8B2]">
-                          <span className="w-2 h-2 rounded-full bg-[#A7F3D0] dark:bg-[#1E4538]" />
-                          <span>Remaining · {remaining} pgs left</span>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {book.shelf !== 'finished' && (
-                          <>
-                            <button
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {book.shelf !== 'finished' && (
+                              <>
+                                <motion.button
+                                  type="button"
+                                  whileTap={{ scale: 0.94 }}
+                                  onClick={() => onLogPages(book.id, 10)}
+                                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F3E7EE] hover:bg-[#EAE0E5] text-[#1F1A1E] dark:bg-[#2B2534] dark:hover:bg-[#362E42] dark:text-[#F5EFF3] transition-colors cursor-pointer"
+                                >
+                                  +10 Pages
+                                </motion.button>
+                                <motion.button
+                                  type="button"
+                                  whileTap={{ scale: 0.94 }}
+                                  onClick={() => onLogPages(book.id, 25)}
+                                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] transition-colors cursor-pointer"
+                                >
+                                  +25 Pages
+                                </motion.button>
+                              </>
+                            )}
+                            <motion.button
                               type="button"
-                              onClick={() => onLogPages(book.id, 10)}
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F3E7EE] hover:bg-[#EAE0E5] text-[#1F1A1E] dark:bg-[#2B2534] dark:hover:bg-[#362E42] dark:text-[#F5EFF3] transition-colors cursor-pointer"
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => onStartReadingSession(book.title)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#006948] dark:text-[#6EE7B7] hover:bg-[#D1FAE5]/40 dark:hover:bg-[#133A2E] transition-colors cursor-pointer"
                             >
-                              +10 Pages
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onLogPages(book.id, 25)}
-                              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] transition-all active:scale-95 cursor-pointer"
-                            >
-                              +25 Pages
-                            </button>
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => onStartReadingSession(book.title)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#006948] dark:text-[#6EE7B7] hover:bg-[#D1FAE5]/40 dark:hover:bg-[#133A2E] transition-colors cursor-pointer"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          Read Focus
-                        </button>
-                      </div>
+                              <Play className="w-3.5 h-3.5 fill-current" />
+                              Read Focus
+                            </motion.button>
+                          </div>
 
-                      <select
-                        value={book.shelf}
-                        onChange={(e) => onChangeShelf(book.id, e.target.value as BookShelf)}
-                        aria-label="Move book to shelf"
-                        className="bg-transparent border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2.5 py-1 text-xs text-[#574146] dark:text-[#C4B7C1] outline-none cursor-pointer"
-                      >
-                        <option value="reading" className="bg-white dark:bg-[#1B1722]">Currently Reading</option>
-                        <option value="want" className="bg-white dark:bg-[#1B1722]">Want to Read</option>
-                        <option value="finished" className="bg-white dark:bg-[#1B1722]">Finished</option>
-                        <option value="textbook" className="bg-white dark:bg-[#1B1722]">Textbook</option>
-                      </select>
-                    </div>
-                  </div>
-                </article>
-              );
-            })
-          )}
+                          <select
+                            value={book.shelf}
+                            onChange={(e) => onChangeShelf(book.id, e.target.value as BookShelf)}
+                            aria-label="Move book to shelf"
+                            className="bg-transparent border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2.5 py-1 text-xs text-[#574146] dark:text-[#C4B7C1] outline-none cursor-pointer"
+                          >
+                            <option value="reading" className="bg-white dark:bg-[#1B1722]">Currently Reading</option>
+                            <option value="want" className="bg-white dark:bg-[#1B1722]">Want to Read</option>
+                            <option value="finished" className="bg-white dark:bg-[#1B1722]">Finished</option>
+                            <option value="textbook" className="bg-white dark:bg-[#1B1722]">Textbook</option>
+                          </select>
+                        </div>
+                      </div>
+                    </motion.article>
+                  );
+                })
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        {/* Right Sidebar: Reading Streak + Highlights + Evening Session */}
+        {/* Right Sidebar */}
         <aside className="lg:col-span-4 flex flex-col gap-5">
           {/* Reading Streak Calendar */}
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
+          <section className="fx-card rounded-2xl p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
                 Reading Streak
@@ -398,8 +417,10 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
                 </span>
               ))}
               {calendarDays.map((item) => (
-                <span
+                <motion.span
                   key={item.d}
+                  whileHover={{ scale: 1.12 }}
+                  transition={FLOW_SPRING}
                   className={`py-1.5 rounded-lg font-semibold ${
                     item.level === 3
                       ? 'bg-[#006948] text-white dark:bg-[#58CD9B] dark:text-[#072116]'
@@ -411,13 +432,13 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
                   } ${item.today ? 'ring-2 ring-[#F56498] ring-offset-1 dark:ring-offset-[#1B1722]' : ''}`}
                 >
                   {item.d}
-                </span>
+                </motion.span>
               ))}
             </div>
           </section>
 
           {/* Recent Highlights */}
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
+          <section className="fx-card rounded-2xl p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3] flex items-center gap-1.5">
                 <MessageSquareQuote className="w-4 h-4 text-[#A3265B] dark:text-[#FFB1C6]" />
@@ -432,48 +453,54 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
               </button>
             </div>
 
-            {showAddHighlight && (
-              <form
-                onSubmit={handleCreateHighlight}
-                className="bg-[#FCF1F6] dark:bg-[#231E2B] rounded-xl p-3 flex flex-col gap-2.5"
-              >
-                <div className="flex gap-2">
-                  <select
-                    value={hlBook}
-                    onChange={(e) => setHlBook(e.target.value)}
-                    className="flex-1 bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2 py-1.5 text-xs outline-none"
-                  >
-                    {books.map((b) => (
-                      <option key={b.id} value={b.title}>
-                        {b.title}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min={1}
-                    value={hlPage}
-                    onChange={(e) => setHlPage(Number(e.target.value))}
-                    className="w-20 bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2 py-1.5 text-xs font-mono outline-none"
-                    placeholder="Pg"
-                  />
-                </div>
-                <textarea
-                  rows={2}
-                  required
-                  value={hlQuote}
-                  onChange={(e) => setHlQuote(e.target.value)}
-                  placeholder="Paste a passage or key takeaway..."
-                  className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2.5 py-1.5 text-xs outline-none resize-none"
-                />
-                <button
-                  type="submit"
-                  className="self-end px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#006948] text-white dark:bg-[#58CD9B] dark:text-[#072116] cursor-pointer"
+            <AnimatePresence initial={false}>
+              {showAddHighlight && (
+                <motion.form
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18, ease: FLOW_EASE }}
+                  onSubmit={handleCreateHighlight}
+                  className="bg-[#FCF1F6] dark:bg-[#231E2B] rounded-xl p-3 flex flex-col gap-2.5"
                 >
-                  Save Highlight
-                </button>
-              </form>
-            )}
+                  <div className="flex gap-2">
+                    <select
+                      value={hlBook}
+                      onChange={(e) => setHlBook(e.target.value)}
+                      className="flex-1 bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2 py-1.5 text-xs outline-none"
+                    >
+                      {books.map((b) => (
+                        <option key={b.id} value={b.title}>
+                          {b.title}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min={1}
+                      value={hlPage}
+                      onChange={(e) => setHlPage(Number(e.target.value))}
+                      className="w-20 bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2 py-1.5 text-xs font-mono outline-none"
+                      placeholder="Pg"
+                    />
+                  </div>
+                  <textarea
+                    rows={2}
+                    required
+                    value={hlQuote}
+                    onChange={(e) => setHlQuote(e.target.value)}
+                    placeholder="Paste a passage or key takeaway..."
+                    className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#342D3E] rounded-lg px-2.5 py-1.5 text-xs outline-none resize-none"
+                  />
+                  <button
+                    type="submit"
+                    className="self-end px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#006948] text-white dark:bg-[#58CD9B] dark:text-[#072116] cursor-pointer"
+                  >
+                    Save Highlight
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
 
             <div className="flex flex-col gap-2.5">
               {highlights.map((hl) => (
@@ -496,7 +523,7 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
           </section>
 
           {/* Evening Reading Launcher */}
-          <section className="bg-[#FCF1F6] dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
+          <section className="fx-surface-tinted rounded-2xl p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between text-xs text-[#8A7177] dark:text-[#9D8F99]">
               <span className="font-semibold">Scheduled Reading</span>
               <span className="font-mono">20:00 – 21:00</span>
@@ -513,117 +540,118 @@ export const ReadingTrackerSection: React.FC<ReadingTrackerSectionProps> = ({
               <Headphones className="w-4 h-4 text-[#006948] dark:text-[#6EE7B7]" />
               <span>40Hz Ambient Focus Ready</span>
             </div>
-            <button
+            <motion.button
               type="button"
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => onStartReadingSession(books[1]?.title || 'Evening Reading')}
-              className="w-full py-2.5 rounded-xl bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Start Reading Focus Session
-            </button>
+            </motion.button>
           </section>
         </aside>
-      </div>
+      </motion.div>
 
-      {/* Add Book Modal */}
-      {showAddBookModal && (
-        <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1C1823] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl max-w-md w-full p-6 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
-                Add Book to Bookshelf
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowAddBookModal(false)}
-                className="p-1.5 rounded-lg text-[#8A7177] hover:bg-[#F3E7EE] dark:hover:bg-[#2A2432] cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* Animated Add Book Modal */}
+      <AnimatedModal open={showAddBookModal} onClose={() => setShowAddBookModal(false)} maxWidthClass="max-w-md">
+        <div className="p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
+              Add Book to Bookshelf
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowAddBookModal(false)}
+              className="p-1.5 rounded-lg text-[#8A7177] hover:bg-[#F3E7EE] dark:hover:bg-[#2A2432] cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleCreateBook} className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Book Title</label>
+              <input
+                type="text"
+                required
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="e.g., The Structure of Scientific Revolutions"
+                className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none focus:border-[#A3265B]"
+              />
             </div>
 
-            <form onSubmit={handleCreateBook} className="flex flex-col gap-3.5">
+            <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Book Title</label>
+                <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Author</label>
                 <input
                   type="text"
                   required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g., The Structure of Scientific Revolutions"
+                  value={newAuthor}
+                  onChange={(e) => setNewAuthor(e.target.value)}
+                  placeholder="Thomas S. Kuhn"
                   className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none focus:border-[#A3265B]"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Author</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAuthor}
-                    onChange={(e) => setNewAuthor(e.target.value)}
-                    placeholder="Thomas S. Kuhn"
-                    className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none focus:border-[#A3265B]"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Total Pages</label>
-                  <input
-                    type="number"
-                    min={20}
-                    max={2500}
-                    value={newPages}
-                    onChange={(e) => setNewPages(Number(e.target.value))}
-                    className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm font-mono text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
-                  />
-                </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Total Pages</label>
+                <input
+                  type="number"
+                  min={20}
+                  max={2500}
+                  value={newPages}
+                  onChange={(e) => setNewPages(Number(e.target.value))}
+                  className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm font-mono text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
+                />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Field</label>
-                  <input
-                    type="text"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Shelf</label>
-                  <select
-                    value={newShelf}
-                    onChange={(e) => setNewShelf(e.target.value as BookShelf)}
-                    className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none cursor-pointer"
-                  >
-                    <option value="reading">Currently Reading</option>
-                    <option value="want">Want to Read</option>
-                    <option value="textbook">Academic Textbook</option>
-                    <option value="finished">Finished</option>
-                  </select>
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Field</label>
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
+                />
               </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddBookModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#F3E7EE] dark:bg-[#26212E] text-[#1F1A1E] dark:text-[#F5EFF3] cursor-pointer"
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#574146] dark:text-[#C4B7C1]">Shelf</label>
+                <select
+                  value={newShelf}
+                  onChange={(e) => setNewShelf(e.target.value as BookShelf)}
+                  className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] cursor-pointer"
-                >
-                  Add Book
-                </button>
+                  <option value="reading">Currently Reading</option>
+                  <option value="want">Want to Read</option>
+                  <option value="textbook">Academic Textbook</option>
+                  <option value="finished">Finished</option>
+                </select>
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAddBookModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#F3E7EE] dark:bg-[#26212E] text-[#1F1A1E] dark:text-[#F5EFF3] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <motion.button
+                type="submit"
+                whileTap={{ scale: 0.96 }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] cursor-pointer"
+              >
+                Add Book
+              </motion.button>
+            </div>
+          </form>
         </div>
-      )}
-    </div>
+      </AnimatedModal>
+    </motion.div>
   );
 };

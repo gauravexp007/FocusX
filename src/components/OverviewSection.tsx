@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
   Check,
   Clock,
@@ -28,6 +30,14 @@ import {
   StudyNote,
   UserPreferences,
 } from '../types';
+import {
+  AudioWaveBars,
+  FLOW_EASE,
+  FLOW_SPRING,
+  flowItem,
+  SegmentedControl,
+  staggerContainer,
+} from './MotionPrimitives';
 
 interface OverviewSectionProps {
   preferences: UserPreferences;
@@ -42,7 +52,6 @@ interface OverviewSectionProps {
   onNavigate: (section: SectionId) => void;
   onToggleTask: (id: string) => void;
   onOpenArtifact: (artifact: HandwritingArtifact) => void;
-  // Shared live timer state
   timerSecondsLeft: number;
   timerTotalSeconds: number;
   timerRunning: boolean;
@@ -128,15 +137,23 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
     .slice(0, 3);
 
   return (
-    <div className="flex flex-col gap-6 lg:gap-8">
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col gap-6 lg:gap-8"
+    >
       {/* 1. Personalized Welcome Banner & Daily Focus Goal */}
-      <section className="relative overflow-hidden rounded-2xl bg-[#FCF1F6] dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] p-6 lg:p-7">
-        <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-[#FFB9F9]/25 dark:bg-[#F56498]/15 blur-3xl pointer-events-none" />
-        <div className="absolute right-44 -bottom-20 w-56 h-56 rounded-full bg-[#BAE8FF]/30 dark:bg-[#38BDF8]/10 blur-2xl pointer-events-none" />
+      <motion.section
+        variants={flowItem}
+        className="relative overflow-hidden rounded-3xl fx-surface-tinted p-6 lg:p-8"
+      >
+        <div className="absolute -right-14 -top-16 w-72 h-72 rounded-full bg-[#FFB9F9]/25 dark:bg-[#F56498]/15 blur-3xl pointer-events-none" />
+        <div className="absolute right-44 -bottom-24 w-64 h-64 rounded-full bg-[#BAE8FF]/30 dark:bg-[#38BDF8]/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex flex-col gap-2 max-w-xl">
-            <div className="flex items-center gap-2 text-xs font-medium text-[#574146] dark:text-[#B5A8B2]">
+          <div className="flex flex-col gap-2.5 max-w-xl">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#574146] dark:text-[#B5A8B2]">
               <span className="inline-flex items-center gap-1 font-semibold text-[#92400E] dark:text-[#FCD34D]">
                 <Flame className="w-3.5 h-3.5 text-[#D97706] dark:text-[#FBBF24]" />
                 {streakDays}-Day Study Streak
@@ -147,7 +164,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               </span>
             </div>
 
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tracking-tight leading-tight">
               Welcome back, {firstName}
             </h1>
             <p className="text-sm text-[#574146] dark:text-[#C4B7C1] leading-relaxed">
@@ -159,31 +176,41 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               <strong className="font-semibold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
                 {activeTasks.length}
               </strong>{' '}
-              academic tasks on deck.
+              academic tasks on deck in FocusX.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
+              <motion.button
                 type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={onStartQuickPomodoro}
-                className="inline-flex items-center gap-2 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer whitespace-nowrap shadow-xs"
+                className="inline-flex items-center gap-2 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs"
               >
                 <Play className="w-4 h-4 fill-current" />
                 Start Pomodoro ({preferences.defaultFocusMinutes}m)
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => onNavigate('tasks')}
-                className="inline-flex items-center gap-2 bg-white dark:bg-[#25202D] hover:bg-[#F6EBF1] dark:hover:bg-[#2F2939] text-[#1F1A1E] dark:text-[#F5EFF3] border border-[#EAE0E5] dark:border-[#363041] text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 bg-white/90 dark:bg-[#25202D] hover:bg-[#F6EBF1] dark:hover:bg-[#2F2939] text-[#1F1A1E] dark:text-[#F5EFF3] border border-[#EAE0E5] dark:border-[#363041] text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
               >
                 Review Task Queue
                 <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              </motion.button>
             </div>
           </div>
 
-          {/* Radial Target Dial */}
-          <div className="flex items-center gap-5 bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] p-4 rounded-2xl self-start lg:self-center">
+          {/* Animated Radial Target Dial */}
+          <motion.button
+            type="button"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onNavigate('analytics')}
+            className="text-left flex items-center gap-5 bg-white/95 dark:bg-[#221D2A]/95 border border-[#EAE0E5] dark:border-[#322C3C] p-4 rounded-2xl self-start lg:self-center shadow-xs hover:border-[#F56498]/50 transition-colors cursor-pointer"
+          >
             <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
                 <circle
@@ -195,7 +222,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                   strokeWidth="8"
                   className="text-[#F0E5EB] dark:text-[#332C3D]"
                 />
-                <circle
+                <motion.circle
                   cx="50"
                   cy="50"
                   r="40"
@@ -204,8 +231,10 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                   strokeWidth="8"
                   strokeLinecap="round"
                   strokeDasharray={radialCircumference}
-                  strokeDashoffset={radialOffset}
-                  className="text-[#F56498] dark:text-[#FFB1C6] transition-all duration-700 ease-out"
+                  initial={{ strokeDashoffset: radialCircumference }}
+                  animate={{ strokeDashoffset: radialOffset }}
+                  transition={{ duration: 0.9, ease: FLOW_EASE }}
+                  className="text-[#F56498] dark:text-[#FFB1C6]"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -233,124 +262,115 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 <span>{focusLogs.length} sessions logged</span>
               </div>
             </div>
-          </div>
+          </motion.button>
         </div>
-      </section>
+      </motion.section>
 
       {/* 2. Academic Vitals (7 cols) + Quick Actions (5 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <motion.div variants={flowItem} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Academic Vitals 2x2 */}
         <div className="lg:col-span-7 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
               Academic Vitals
             </h2>
-            <div className="inline-flex items-center p-0.5 rounded-lg bg-[#F3E7EE] dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C]">
-              {(['today', 'week', 'month'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setVitalsRange(r)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer capitalize ${
-                    vitalsRange === r
-                      ? 'bg-[#FFB9F9] text-[#3B1837] font-semibold dark:bg-[#F56498] dark:text-[#1A0814]'
-                      : 'text-[#574146] hover:text-[#1F1A1E] dark:text-[#B5A8B2] dark:hover:text-white'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              layoutId="overview-vitals-range"
+              variant="rose"
+              value={vitalsRange}
+              onChange={setVitalsRange}
+              options={[
+                { id: 'today', label: 'Today' },
+                { id: 'week', label: 'Week' },
+                { id: 'month', label: 'Month' },
+              ]}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4 flex-1">
-            <button
-              type="button"
-              onClick={() => onNavigate('analytics')}
-              className="text-left bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#006948]/50 dark:hover:border-[#6EE7B7]/40 rounded-2xl p-5 flex flex-col justify-between transition-all duration-150 hover:-translate-y-0.5 cursor-pointer"
-            >
-              <div className="flex items-center justify-between text-xs font-semibold text-[#574146] dark:text-[#B5A8B2]">
-                <span>Study Time</span>
-                <Clock className="w-4 h-4 text-[#006948] dark:text-[#6EE7B7]" />
-              </div>
-              <div className="my-2">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
-                  {studyTimeValue}
-                </div>
-                <p className="text-xs text-[#006948] dark:text-[#6EE7B7] font-medium mt-1">
-                  +14% vs prior period
-                </p>
-              </div>
-              <div className="text-xs text-[#8A7177] dark:text-[#9D8F99] pt-2 border-t border-[#F0E5EB] dark:border-[#2B2533]">
-                View full analytics →
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('notes')}
-              className="text-left bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#006782]/50 dark:hover:border-[#7DD3FC]/40 rounded-2xl p-5 flex flex-col justify-between transition-all duration-150 hover:-translate-y-0.5 cursor-pointer"
-            >
-              <div className="flex items-center justify-between text-xs font-semibold text-[#574146] dark:text-[#B5A8B2]">
-                <span>Study Notes</span>
-                <FileText className="w-4 h-4 text-[#006782] dark:text-[#7DD3FC]" />
-              </div>
-              <div className="my-2">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
-                  {notes.length + artifacts.length} files
-                </div>
-                <p className="text-xs text-[#006782] dark:text-[#7DD3FC] font-medium mt-1">
-                  {notes.filter((n) => n.saved).length} saved guides · {artifacts.length} sheets
-                </p>
-              </div>
-              <div className="text-xs text-[#8A7177] dark:text-[#9D8F99] pt-2 border-t border-[#F0E5EB] dark:border-[#2B2533]">
-                Browse library →
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('reading')}
-              className="text-left bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#B45309]/50 dark:hover:border-[#FBBF24]/40 rounded-2xl p-5 flex flex-col justify-between transition-all duration-150 hover:-translate-y-0.5 cursor-pointer"
-            >
-              <div className="flex items-center justify-between text-xs font-semibold text-[#574146] dark:text-[#B5A8B2]">
-                <span>Reading Bookshelf</span>
-                <BookOpen className="w-4 h-4 text-[#B45309] dark:text-[#FBBF24]" />
-              </div>
-              <div className="my-2">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
-                  {finishedBooksCount} finished
-                </div>
-                <p className="text-xs text-[#B45309] dark:text-[#FBBF24] font-medium mt-1">
-                  {readingBooks.length} currently reading
-                </p>
-              </div>
-              <div className="text-xs text-[#8A7177] dark:text-[#9D8F99] pt-2 border-t border-[#F0E5EB] dark:border-[#2B2533]">
-                Goal: {preferences.readingGoalBooks} books/yr
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('tasks')}
-              className="text-left bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/40 rounded-2xl p-5 flex flex-col justify-between transition-all duration-150 hover:-translate-y-0.5 cursor-pointer"
-            >
-              <div className="flex items-center justify-between text-xs font-semibold text-[#574146] dark:text-[#B5A8B2]">
-                <span>Task Completion</span>
-                <Sparkles className="w-4 h-4 text-[#A3265B] dark:text-[#F56498]" />
-              </div>
-              <div className="my-2">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
-                  {completedTasks.length} / {tasks.length}
-                </div>
-                <p className="text-xs text-[#A3265B] dark:text-[#F56498] font-medium mt-1">
-                  {activeTasks.filter((t) => t.priority === 'high').length} high-priority open
-                </p>
-              </div>
-              <div className="text-xs text-[#8A7177] dark:text-[#9D8F99] pt-2 border-t border-[#F0E5EB] dark:border-[#2B2533]">
-                Open task board →
-              </div>
-            </button>
+            {[
+              {
+                label: 'Study Time',
+                value: studyTimeValue,
+                sub: '+14% vs prior period',
+                cta: 'View full analytics',
+                icon: Clock,
+                accent: 'text-[#006948] dark:text-[#6EE7B7]',
+                hoverBorder: 'hover:border-[#006948]/50 dark:hover:border-[#6EE7B7]/40',
+                target: 'analytics' as SectionId,
+                animKey: `${vitalsRange}-${studyTimeValue}`,
+              },
+              {
+                label: 'Study Notes',
+                value: `${notes.length + artifacts.length} files`,
+                sub: `${notes.filter((n) => n.saved).length} saved guides · ${artifacts.length} sheets`,
+                cta: 'Browse library',
+                icon: FileText,
+                accent: 'text-[#006782] dark:text-[#7DD3FC]',
+                hoverBorder: 'hover:border-[#006782]/50 dark:hover:border-[#7DD3FC]/40',
+                target: 'notes' as SectionId,
+                animKey: `notes-${notes.length + artifacts.length}`,
+              },
+              {
+                label: 'Reading Bookshelf',
+                value: `${finishedBooksCount} finished`,
+                sub: `${readingBooks.length} currently reading`,
+                cta: `Goal: ${preferences.readingGoalBooks} books/yr`,
+                icon: BookOpen,
+                accent: 'text-[#B45309] dark:text-[#FBBF24]',
+                hoverBorder: 'hover:border-[#B45309]/50 dark:hover:border-[#FBBF24]/40',
+                target: 'reading' as SectionId,
+                animKey: `books-${finishedBooksCount}`,
+              },
+              {
+                label: 'Task Completion',
+                value: `${completedTasks.length} / ${tasks.length}`,
+                sub: `${activeTasks.filter((t) => t.priority === 'high').length} high-priority open`,
+                cta: 'Open task board',
+                icon: Sparkles,
+                accent: 'text-[#A3265B] dark:text-[#F56498]',
+                hoverBorder: 'hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/40',
+                target: 'tasks' as SectionId,
+                animKey: `tasks-${completedTasks.length}`,
+              },
+            ].map((card) => {
+              const Icon = card.icon;
+              return (
+                <motion.button
+                  key={card.label}
+                  type="button"
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.985 }}
+                  transition={FLOW_SPRING}
+                  onClick={() => onNavigate(card.target)}
+                  className={`group text-left fx-card ${card.hoverBorder} rounded-2xl p-5 flex flex-col justify-between transition-colors cursor-pointer`}
+                >
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#574146] dark:text-[#B5A8B2]">
+                    <span>{card.label}</span>
+                    <Icon className={`w-4 h-4 ${card.accent} transition-transform duration-200 group-hover:scale-110`} />
+                  </div>
+                  <div className="my-2.5">
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.div
+                        key={card.animKey}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.16, ease: FLOW_EASE }}
+                        className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums"
+                      >
+                        {card.value}
+                      </motion.div>
+                    </AnimatePresence>
+                    <p className={`text-xs ${card.accent} font-medium mt-1`}>{card.sub}</p>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-[#8A7177] dark:text-[#9D8F99] pt-2.5 border-t border-[#F0E5EB] dark:border-[#2B2533]">
+                    <span>{card.cta}</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
@@ -360,7 +380,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
               Quick Actions
             </h2>
-            <span className="text-xs text-[#8A7177] dark:text-[#9D8F99]">Jump to tool</span>
+            <span className="text-xs text-[#8A7177] dark:text-[#9D8F99]">Jump to studio</span>
           </div>
 
           <div className="grid grid-cols-2 gap-4 flex-1">
@@ -396,14 +416,17 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             ].map((action) => {
               const Icon = action.icon;
               return (
-                <button
+                <motion.button
                   key={action.label}
                   type="button"
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={FLOW_SPRING}
                   onClick={() => onNavigate(action.target)}
-                  className="group bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#A3265B]/40 dark:hover:border-[#F56498]/40 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-3 transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer"
+                  className="group fx-card hover:border-[#A3265B]/45 dark:hover:border-[#F56498]/45 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-3 transition-colors cursor-pointer"
                 >
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.gradient} text-white flex items-center justify-center shadow-md transition-transform duration-200 group-hover:scale-105`}
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.gradient} text-white flex items-center justify-center shadow-md transition-transform duration-200 group-hover:scale-108 group-hover:-rotate-3`}
                   >
                     <Icon className="w-6 h-6" />
                   </div>
@@ -415,17 +438,17 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                       {action.sub}
                     </div>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* 3. Interactive Live Focus Studio (5 cols) + Weekly Chart & To-Do List (7 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <motion.div variants={flowItem} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Live Focus Studio */}
-        <section className="lg:col-span-5 bg-[#FCF1F6] dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-6 flex flex-col justify-between gap-5">
+        <section className="lg:col-span-5 fx-surface-tinted rounded-2xl p-6 flex flex-col justify-between gap-5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {timerRunning && (
@@ -444,43 +467,56 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </button>
           </div>
 
-          {/* Circular Timer Face */}
+          {/* Circular Timer Face with Active Halo */}
           <div className="flex flex-col items-center justify-center py-2">
-            <div className="relative w-52 h-52 rounded-full bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] flex items-center justify-center shadow-inner">
-              <svg className="absolute inset-0 w-full h-full -rotate-90 p-2" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="4.5"
-                  className="text-[#F0E5EB] dark:text-[#332C3D]"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  strokeDasharray={timerRingCircumference}
-                  strokeDashoffset={timerRingOffset}
-                  className={`transition-all duration-700 ease-linear ${
+            <div className="relative w-52 h-52 flex items-center justify-center">
+              {timerRunning && (
+                <motion.div
+                  animate={{ scale: [1, 1.06, 1], opacity: [0.35, 0.6, 0.35] }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                  className={`absolute inset-0 rounded-full blur-xl pointer-events-none ${
                     timerMode === 'focus'
-                      ? 'text-[#F56498] dark:text-[#FFB1C6]'
-                      : 'text-[#006948] dark:text-[#6EE7B7]'
+                      ? 'bg-[#F56498]/30 dark:bg-[#F56498]/25'
+                      : 'bg-[#006948]/30 dark:bg-[#58CD9B]/25'
                   }`}
                 />
-              </svg>
-              <div className="relative z-10 flex flex-col items-center select-none">
-                <span className="font-mono text-4xl font-bold tracking-tight text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
-                  {formatClock(timerSecondsLeft)}
-                </span>
-                <span className="text-xs font-medium text-[#8A7177] dark:text-[#9D8F99] mt-1">
-                  {timerMode === 'focus' ? 'Deep Work Block' : 'Rest & Recharge'}
-                </span>
+              )}
+              <div className="relative w-52 h-52 rounded-full bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] flex items-center justify-center shadow-inner">
+                <svg className="absolute inset-0 w-full h-full -rotate-90 p-2" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="44"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4.5"
+                    className="text-[#F0E5EB] dark:text-[#332C3D]"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="44"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeDasharray={timerRingCircumference}
+                    strokeDashoffset={timerRingOffset}
+                    className={`transition-all duration-700 ease-linear ${
+                      timerMode === 'focus'
+                        ? 'text-[#F56498] dark:text-[#FFB1C6]'
+                        : 'text-[#006948] dark:text-[#6EE7B7]'
+                    }`}
+                  />
+                </svg>
+                <div className="relative z-10 flex flex-col items-center select-none">
+                  <span className="font-mono text-4xl font-bold tracking-tight text-[#1F1A1E] dark:text-[#F5EFF3] tabular-nums">
+                    {formatClock(timerSecondsLeft)}
+                  </span>
+                  <span className="text-xs font-medium text-[#8A7177] dark:text-[#9D8F99] mt-1">
+                    {timerMode === 'focus' ? 'Deep Work Block' : 'Rest & Recharge'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -488,31 +524,36 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           {/* Controls */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-center gap-3">
-              <button
+              <motion.button
                 type="button"
+                whileHover={{ rotate: -25 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={onResetTimer}
                 aria-label="Reset timer"
                 className="w-10 h-10 rounded-full bg-white dark:bg-[#25202D] border border-[#EAE0E5] dark:border-[#363041] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={onToggleTimer}
-                className="flex-1 max-w-[200px] flex items-center justify-center gap-2 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] font-semibold text-sm py-2.5 px-5 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs"
+                className="flex-1 max-w-[200px] flex items-center justify-center gap-2 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] font-semibold text-sm py-2.5 px-5 rounded-xl transition-colors cursor-pointer shadow-xs"
               >
                 {timerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
                 <span>{timerRunning ? 'Pause Focus' : 'Start Focus'}</span>
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
+                whileTap={{ scale: 0.9 }}
                 onClick={onSkipTimer}
                 aria-label="Switch interval"
                 title="Switch between Focus and Break"
                 className="w-10 h-10 rounded-full bg-white dark:bg-[#25202D] border border-[#EAE0E5] dark:border-[#363041] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <SkipForward className="w-4 h-4" />
-              </button>
+              </motion.button>
             </div>
 
             {/* Active Coursework Module */}
@@ -524,18 +565,26 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 {SUBJECTS.map((subj) => {
                   const selected = timerSubject === subj;
                   return (
-                    <button
+                    <motion.button
                       key={subj}
                       type="button"
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => onSelectSubject(subj)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                      className={`relative px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-[#006948] text-white dark:bg-[#58CD9B] dark:text-[#072116] font-semibold'
+                          ? 'text-white dark:text-[#072116] font-semibold'
                           : 'bg-white dark:bg-[#25202D] text-[#574146] dark:text-[#C4B7C1] border border-[#EAE0E5] dark:border-[#363041] hover:text-[#1F1A1E] dark:hover:text-white'
                       }`}
                     >
-                      {subj}
-                    </button>
+                      {selected && (
+                        <motion.span
+                          layoutId="overview-subject-chip"
+                          transition={FLOW_SPRING}
+                          className="absolute inset-0 rounded-lg bg-[#006948] dark:bg-[#58CD9B]"
+                        />
+                      )}
+                      <span className="relative z-10">{subj}</span>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -545,7 +594,8 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             <div className="flex items-center justify-between bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] px-3.5 py-2.5 rounded-xl">
               <span className="flex items-center gap-2 text-xs text-[#574146] dark:text-[#C4B7C1]">
                 <Headphones className="w-4 h-4 text-[#006782] dark:text-[#7DD3FC]" />
-                Soundscape
+                <span>Soundscape</span>
+                <AudioWaveBars active={soundscape !== 'muted'} className="ml-1" />
               </span>
               <select
                 value={soundscape}
@@ -566,7 +616,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
         {/* Right 7 Cols: Weekly Study Chart + Active To-Do List */}
         <div className="lg:col-span-7 flex flex-col gap-6">
           {/* Weekly Study Time Recharts Bar Chart */}
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-6 flex flex-col gap-4">
+          <section className="fx-card rounded-2xl p-6 flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
@@ -601,15 +651,17 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                     unit="h"
                   />
                   <Tooltip
-                    cursor={{ fill: 'rgba(163, 38, 91, 0.06)' }}
+                    cursor={{ fill: 'rgba(245, 100, 152, 0.08)' }}
                     contentStyle={{
                       borderRadius: '12px',
                       border: '1px solid #EAE0E5',
                       fontSize: '12px',
+                      backgroundColor: 'rgba(255,255,255,0.96)',
+                      color: '#1F1A1E',
                     }}
                     formatter={(val) => [`${Number(val ?? 0).toFixed(1)} hrs`, 'Study Time']}
                   />
-                  <Bar dataKey="hours" radius={[8, 8, 4, 4]} maxBarSize={36}>
+                  <Bar dataKey="hours" radius={[8, 8, 4, 4]} maxBarSize={36} animationDuration={650}>
                     {weeklyChartData.map((entry) => (
                       <Cell
                         key={entry.day}
@@ -623,7 +675,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </section>
 
           {/* Active To-Do Preview */}
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-6 flex flex-col gap-4 flex-1">
+          <section className="fx-card rounded-2xl p-6 flex flex-col gap-4 flex-1">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
@@ -633,21 +685,23 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                   {activeTasks.length} pending · {completedTasks.length} completed today
                 </p>
               </div>
-              <button
+              <motion.button
                 type="button"
+                whileTap={{ scale: 0.96 }}
                 onClick={() => onNavigate('tasks')}
                 className="inline-flex items-center gap-1.5 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Manage Tasks
-              </button>
+              </motion.button>
             </div>
 
             <div className="flex flex-col divide-y divide-[#F0E5EB] dark:divide-[#2B2533]">
               {tasks.slice(0, 4).map((task) => {
                 const done = task.status === 'done';
                 return (
-                  <div
+                  <motion.div
+                    layout
                     key={task.id}
                     className="py-2.5 flex items-center justify-between gap-3 group"
                   >
@@ -656,18 +710,30 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                       onClick={() => onToggleTask(task.id)}
                       className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer"
                     >
-                      <span
+                      <motion.span
+                        whileTap={{ scale: 0.85 }}
                         className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors border ${
                           done
                             ? 'bg-[#006948] border-[#006948] text-white dark:bg-[#58CD9B] dark:border-[#58CD9B] dark:text-[#072116]'
                             : 'border-[#C9B8C2] dark:border-[#4A4154] group-hover:border-[#A3265B] dark:group-hover:border-[#F56498]'
                         }`}
                       >
-                        {done && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
-                      </span>
+                        <AnimatePresence>
+                          {done && (
+                            <motion.span
+                              initial={{ scale: 0, rotate: -20 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0 }}
+                              transition={FLOW_SPRING}
+                            >
+                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </motion.span>
                       <div className="min-w-0">
                         <div
-                          className={`text-sm font-medium truncate ${
+                          className={`text-sm font-medium truncate transition-colors ${
                             done
                               ? 'line-through text-[#8A7177] dark:text-[#7D717C]'
                               : 'text-[#1F1A1E] dark:text-[#F5EFF3]'
@@ -691,18 +757,18 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                     >
                       {task.priority}
                     </span>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
           </section>
         </div>
-      </div>
+      </motion.div>
 
       {/* 4. Bottom Split: Reading Progress (6 cols) + Upcoming Deadlines (6 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <motion.div variants={flowItem} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Reading Progress */}
-        <section className="lg:col-span-6 bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-6 flex flex-col gap-4">
+        <section className="lg:col-span-6 fx-card rounded-2xl p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
@@ -741,9 +807,12 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-[#F0E5EB] dark:bg-[#2E2836] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-[#006948] dark:bg-[#58CD9B] transition-all duration-500"
-                      style={{ width: `${pct}%` }}
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: pct / 100 }}
+                      transition={{ duration: 0.75, ease: FLOW_EASE }}
+                      style={{ transformOrigin: 'left' }}
+                      className="h-full w-full rounded-full bg-[#006948] dark:bg-[#58CD9B]"
                     />
                   </div>
                 </div>
@@ -753,7 +822,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
         </section>
 
         {/* Upcoming Deadlines */}
-        <section className="lg:col-span-6 bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-6 flex flex-col gap-4">
+        <section className="lg:col-span-6 fx-card rounded-2xl p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
@@ -774,9 +843,14 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
 
           <div className="flex flex-col divide-y divide-[#F0E5EB] dark:divide-[#2B2533]">
             {upcomingDeadlines.map((item) => (
-              <div key={item.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onNavigate('tasks')}
+                className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4 text-left group cursor-pointer"
+              >
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-[#1F1A1E] dark:text-[#F5EFF3] truncate">
+                  <div className="text-sm font-semibold text-[#1F1A1E] dark:text-[#F5EFF3] group-hover:text-[#A3265B] dark:group-hover:text-[#FFB1C6] transition-colors truncate">
                     {item.title}
                   </div>
                   <div className="text-xs text-[#8A7177] dark:text-[#9D8F99] mt-0.5 truncate">
@@ -792,14 +866,14 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 >
                   {item.dueLabel}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </section>
-      </div>
+      </motion.div>
 
       {/* 5. Recent Handwriting Studio Artifacts */}
-      <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-6 flex flex-col gap-4">
+      <motion.section variants={flowItem} className="fx-card rounded-2xl p-6 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h3 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
@@ -820,15 +894,18 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {artifacts.slice(0, 3).map((art) => (
-            <button
+            <motion.button
               key={art.id}
               type="button"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.985 }}
+              transition={FLOW_SPRING}
               onClick={() => onOpenArtifact(art)}
-              className="group text-left rounded-xl border border-[#EAE0E5] dark:border-[#312B3A] overflow-hidden hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/50 transition-all cursor-pointer bg-[#FCF1F6]/50 dark:bg-[#221D2A]"
+              className="group text-left rounded-xl border border-[#EAE0E5] dark:border-[#312B3A] overflow-hidden hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/50 transition-colors cursor-pointer bg-[#FCF1F6]/50 dark:bg-[#221D2A]"
             >
               <div className="h-28 p-4 paper-ruled overflow-hidden relative border-b border-[#EAE0E5] dark:border-[#312B3A]">
                 <p
-                  className="text-[#1E3A8A] text-lg leading-6 line-clamp-3 select-none"
+                  className="text-[#1E3A8A] text-lg leading-6 line-clamp-3 select-none transition-transform duration-200 group-hover:scale-[1.02]"
                   style={{ fontFamily: '"Caveat", cursive' }}
                 >
                   {art.text.replace(/^#\s*/, '')}
@@ -843,10 +920,10 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                   {art.subject} · {art.pages} {art.pages === 1 ? 'page' : 'pages'} · {art.updatedAt}
                 </div>
               </div>
-            </button>
+            </motion.button>
           ))}
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   Brain,
   CheckCircle2,
@@ -17,6 +18,13 @@ import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } fro
 import { LOGIC_PUZZLES, PUZZLE_24_DECKS } from '../data/initialData';
 import { GameScores } from '../types';
 import { ScholarAvatar } from './BookCoverArt';
+import {
+  FLOW_EASE,
+  FLOW_SPRING,
+  flowItem,
+  SegmentedControl,
+  staggerContainer,
+} from './MotionPrimitives';
 
 interface BrainGamesSectionProps {
   scores: GameScores;
@@ -163,7 +171,7 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
         math24Streak: prev.math24Streak + 1,
         totalPulse: prev.totalPulse + pts,
       }));
-      onNotify(`Exact 24! +${pts} Cognitive Pulse points.`);
+      onNotify(`Exact 24! +${pts} FocusX Cognitive points.`);
       handleDealNewMath();
     } else {
       setMathFeedback(`Evaluated to ${Number(result.toFixed(2))} — adjust operations to hit exactly 24.`);
@@ -176,6 +184,7 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
   const [stroopScore, setStroopScore] = useState(0);
   const [stroopWordIdx, setStroopWordIdx] = useState(0);
   const [stroopInkIdx, setStroopInkIdx] = useState(1);
+  const [stroopRound, setStroopRound] = useState(0);
   const [stroopLastMs, setStroopLastMs] = useState<number | null>(null);
   const stroopStampRef = useRef<number>(Date.now());
 
@@ -201,6 +210,7 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
     if (ink === w) ink = (ink + 1) % STROOP_COLORS.length;
     setStroopWordIdx(w);
     setStroopInkIdx(ink);
+    setStroopRound((r) => r + 1);
     stroopStampRef.current = Date.now();
   };
 
@@ -294,7 +304,7 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
         logicSolved: prev.logicSolved + 1,
         totalPulse: prev.totalPulse + 75,
       }));
-      onNotify('Correct deduction! +75 Cognitive Pulse points.');
+      onNotify('Correct deduction! +75 FocusX Cognitive points.');
     }
   };
 
@@ -310,9 +320,14 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col gap-6"
+    >
       {/* Header & Top Vitals */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <motion.div variants={flowItem} className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
             Mind & Logic Games
@@ -323,470 +338,543 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
         </div>
 
         <div className="flex items-center gap-3 text-xs font-mono tabular-nums">
-          <div className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] px-3.5 py-2 rounded-xl flex items-center gap-2">
+          <div className="fx-card px-3.5 py-2 rounded-xl flex items-center gap-2">
             <Flame className="w-4 h-4 text-[#A3265B] dark:text-[#FFB1C6]" />
             <span className="font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">{scores.math24Streak}x combo</span>
           </div>
-          <div className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] px-3.5 py-2 rounded-xl flex items-center gap-2">
+          <div className="fx-card px-3.5 py-2 rounded-xl flex items-center gap-2">
             <Trophy className="w-4 h-4 text-[#006948] dark:text-[#6EE7B7]" />
             <span className="font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
-              {scores.totalPulse.toLocaleString()} Pulse
+              {scores.totalPulse.toLocaleString()} pts
             </span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Arena Game Switcher Tabs */}
-      <div className="flex flex-wrap items-center gap-2">
-        {(
-          [
-            { id: 'math24' as ActiveGameId, label: '24-Math Blitz', icon: Brain },
-            { id: 'stroop' as ActiveGameId, label: 'Stroop Color Reflex', icon: Palette },
-            { id: 'memory' as ActiveGameId, label: 'Pattern Matrix Memory', icon: Grid2x2 },
-            { id: 'logic' as ActiveGameId, label: 'Logic Deduction', icon: Lightbulb },
-          ]
-        ).map((tab) => {
-          const Icon = tab.icon;
-          const active = activeGame === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveGame(tab.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                active
-                  ? 'bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] shadow-xs'
-                  : 'bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] dark:hover:text-white'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Arena Game Switcher Tabs with shared layoutId */}
+      <motion.div variants={flowItem}>
+        <SegmentedControl
+          layoutId="games-arena-tabs"
+          variant="rose"
+          size="md"
+          value={activeGame}
+          onChange={setActiveGame}
+          options={[
+            { id: 'math24', label: '24-Math Blitz', icon: <Brain className="w-4 h-4" /> },
+            { id: 'stroop', label: 'Stroop Color Reflex', icon: <Palette className="w-4 h-4" /> },
+            { id: 'memory', label: 'Pattern Matrix Memory', icon: <Grid2x2 className="w-4 h-4" /> },
+            { id: 'logic', label: 'Logic Deduction', icon: <Lightbulb className="w-4 h-4" /> },
+          ]}
+        />
+      </motion.div>
 
       {/* FEATURED INTERACTIVE GAME ARENA */}
-      <section className="bg-[#FCF1F6] dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-3xl p-6 lg:p-8">
-        {/* 1. 24-MATH BLITZ */}
-        {activeGame === 'math24' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-4 flex flex-col gap-5">
+      <motion.section variants={flowItem} className="fx-surface-tinted rounded-3xl p-6 lg:p-8 overflow-hidden">
+        <AnimatePresence mode="wait" initial={false}>
+          {/* 1. 24-MATH BLITZ */}
+          {activeGame === 'math24' && (
+            <motion.div
+              key="arena-math24"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: FLOW_EASE }}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
+            >
+              <div className="lg:col-span-4 flex flex-col gap-5">
+                <div>
+                  <span className="text-xs font-semibold text-[#A3265B] dark:text-[#FFB1C6]">
+                    Daily Arithmetic Sprint
+                  </span>
+                  <h2 className="font-display text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-1">
+                    24-Math Blitz
+                  </h2>
+                  <p className="text-xs text-[#574146] dark:text-[#B5A8B2] mt-1.5 leading-relaxed">
+                    {mathFeedback}
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] p-3.5 rounded-2xl flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#8A7177] font-medium">Mode</span>
+                    <span className="font-semibold text-[#A3265B] dark:text-[#FFB1C6]">{difficulty}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['Zen', 'Standard', 'Master'] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMathDifficulty(m)}
+                        className={`relative py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                          difficulty === m
+                            ? 'text-white dark:text-[#072116]'
+                            : 'bg-[#FCF1F6] dark:bg-[#1B1722] text-[#574146] dark:text-[#B5A8B2]'
+                        }`}
+                      >
+                        {difficulty === m && (
+                          <motion.span
+                            layoutId="math-difficulty-pill"
+                            transition={FLOW_SPRING}
+                            className="absolute inset-0 rounded-lg bg-[#006948] dark:bg-[#58CD9B]"
+                          />
+                        )}
+                        <span className="relative z-10">{m}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 font-mono tabular-nums">
+                  <div className="bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] p-3.5 rounded-xl">
+                    <span className="text-[11px] font-sans text-[#8A7177] block">Time Left</span>
+                    <span className="text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
+                      {mathTimeLeft}s
+                    </span>
+                  </div>
+                  <div className="bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] p-3.5 rounded-xl">
+                    <span className="text-[11px] font-sans text-[#8A7177] block">Score</span>
+                    <span className="text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
+                      {scores.math24}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-8 bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl p-6 flex flex-col gap-5 shadow-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-14 h-14 rounded-2xl bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] font-display text-3xl font-bold flex items-center justify-center shadow-xs">
+                      24
+                    </div>
+                    <div>
+                      <div className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
+                        Target Value
+                      </div>
+                      <div className="text-xs text-[#8A7177] dark:text-[#9D8F99]">
+                        Use each digit exactly once
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.94 }}
+                      onClick={() => setShowHint((h) => !h)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FCF1F6] dark:bg-[#2B2534] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] cursor-pointer"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      Hint
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ rotate: -25 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleResetMath}
+                      aria-label="Clear expression"
+                      className="w-9 h-9 rounded-lg bg-[#FCF1F6] dark:bg-[#2B2534] text-[#574146] dark:text-[#C4B7C1] flex items-center justify-center cursor-pointer"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {showHint && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="text-xs text-[#006948] dark:text-[#6EE7B7] bg-[#D1FAE5]/40 dark:bg-[#133A2E]/60 px-3.5 py-2 rounded-xl font-medium"
+                    >
+                      Hint: {currentDeck.hint}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Expression Display */}
+                <div className="bg-[#FCF1F6] dark:bg-[#18141E] border border-[#EAE0E5] dark:border-[#312B3A] rounded-xl px-5 py-4 min-h-[68px] flex items-center justify-between gap-3">
+                  <div className="font-mono text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] flex flex-wrap items-center gap-1.5">
+                    {formulaTokens.length === 0 ? (
+                      <span className="text-sm font-sans font-normal italic text-[#8A7177]">
+                        Tap digits and operators below...
+                      </span>
+                    ) : (
+                      formulaTokens.map((t, i) => (
+                        <motion.span
+                          key={`${i}-${t.token}`}
+                          initial={{ scale: 0.7, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={FLOW_SPRING}
+                          className={
+                            typeof t.digitIdx === 'number'
+                              ? 'bg-white dark:bg-[#2B2534] px-2.5 py-0.5 rounded-md shadow-2xs'
+                              : 'text-[#A3265B] dark:text-[#FFB1C6] px-1'
+                          }
+                        >
+                          {t.token}
+                        </motion.span>
+                      ))
+                    )}
+                  </div>
+                  {liveEval !== null && (
+                    <span
+                      className={`font-mono text-lg font-bold tabular-nums shrink-0 ${
+                        Math.abs(liveEval - 24) < 0.0001
+                          ? 'text-[#006948] dark:text-[#6EE7B7]'
+                          : 'text-[#006782] dark:text-[#7DD3FC]'
+                      }`}
+                    >
+                      = {Number(liveEval.toFixed(2))}
+                    </span>
+                  )}
+                </div>
+
+                {/* Digits */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-[#8A7177]">Digits</span>
+                    <button
+                      type="button"
+                      onClick={handleDealNewMath}
+                      className="inline-flex items-center gap-1 font-semibold text-[#A3265B] dark:text-[#FFB1C6] hover:underline cursor-pointer"
+                    >
+                      <Shuffle className="w-3.5 h-3.5" />
+                      Deal New Deck
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-3">
+                    {currentDeck.digits.map((digit, idx) => {
+                      const used = usedIndices.includes(idx);
+                      return (
+                        <motion.button
+                          key={`${deckIndex}-${idx}`}
+                          type="button"
+                          disabled={used}
+                          whileHover={used ? undefined : { y: -2 }}
+                          whileTap={used ? undefined : { scale: 0.92 }}
+                          transition={FLOW_SPRING}
+                          onClick={() => handlePressDigit(digit, idx)}
+                          className={`h-14 rounded-xl font-display text-2xl font-bold transition-colors cursor-pointer ${
+                            used
+                              ? 'bg-[#F0E5EB] dark:bg-[#2A2433] text-[#8A7177] opacity-40 cursor-not-allowed'
+                              : 'bg-[#FCF1F6] hover:bg-[#F3E7EE] dark:bg-[#2B2534] dark:hover:bg-[#362F42] text-[#1F1A1E] dark:text-[#F5EFF3] border border-[#EAE0E5] dark:border-[#3A3346]'
+                          }`}
+                        >
+                          {digit}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="grid grid-cols-6 gap-2">
+                    {['+', '−', '×', '÷', '(', ')'].map((op) => (
+                      <motion.button
+                        key={op}
+                        type="button"
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.92 }}
+                        transition={FLOW_SPRING}
+                        onClick={() => handlePressOperator(op)}
+                        className="h-11 rounded-xl bg-[#F3E7EE] hover:bg-[#EAE0E5] dark:bg-[#2B2534] dark:hover:bg-[#383145] text-[#1F1A1E] dark:text-[#F5EFF3] font-mono text-xl font-bold transition-colors cursor-pointer"
+                      >
+                        {op}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-1">
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleBackspace}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#F3E7EE] dark:bg-[#2B2534] text-[#1F1A1E] dark:text-[#F5EFF3] cursor-pointer"
+                  >
+                    <Delete className="w-4 h-4" />
+                    Delete
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSubmitMath}
+                    className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] transition-colors cursor-pointer shadow-xs"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Submit Answer
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* 2. STROOP COLOR REFLEX */}
+          {activeGame === 'stroop' && (
+            <motion.div
+              key="arena-stroop"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: FLOW_EASE }}
+              className="max-w-xl mx-auto flex flex-col items-center text-center gap-6 py-4"
+            >
               <div>
                 <span className="text-xs font-semibold text-[#A3265B] dark:text-[#FFB1C6]">
-                  Daily Arithmetic Sprint
+                  Selective Attention Sprint
                 </span>
-                <h2 className="font-display text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-1">
-                  24-Math Blitz
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-1">
+                  Stroop Color Reflex
                 </h2>
-                <p className="text-xs text-[#574146] dark:text-[#B5A8B2] mt-1.5 leading-relaxed">
-                  {mathFeedback}
+                <p className="text-xs text-[#574146] dark:text-[#B5A8B2] mt-1">
+                  Click the button matching the <strong>INK COLOR</strong> of the word — ignore what the text spells!
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] p-3.5 rounded-2xl flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#8A7177] font-medium">Mode</span>
-                  <span className="font-semibold text-[#A3265B] dark:text-[#FFB1C6]">{difficulty}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {(['Zen', 'Standard', 'Master'] as const).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setMathDifficulty(m)}
-                      className={`py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                        difficulty === m
-                          ? 'bg-[#006948] text-white dark:bg-[#58CD9B] dark:text-[#072116]'
-                          : 'bg-[#FCF1F6] dark:bg-[#1B1722] text-[#574146] dark:text-[#B5A8B2]'
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex items-center gap-6 font-mono text-sm tabular-nums">
+                <span>Time: <strong>{stroopTime}s</strong></span>
+                <span>Score: <strong className="text-[#006948] dark:text-[#6EE7B7]">{stroopScore}</strong></span>
+                <span>Last: <strong>{stroopLastMs ? `${stroopLastMs}ms` : '—'}</strong></span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 font-mono tabular-nums">
-                <div className="bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] p-3.5 rounded-xl">
-                  <span className="text-[11px] font-sans text-[#8A7177] block">Time Left</span>
-                  <span className="text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
-                    {mathTimeLeft}s
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] p-3.5 rounded-xl">
-                  <span className="text-[11px] font-sans text-[#8A7177] block">Score</span>
-                  <span className="text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
-                    {scores.math24}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-8 bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl p-6 flex flex-col gap-5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-14 h-14 rounded-2xl bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] font-display text-3xl font-bold flex items-center justify-center">
-                    24
-                  </div>
-                  <div>
-                    <div className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
-                      Target Value
-                    </div>
-                    <div className="text-xs text-[#8A7177] dark:text-[#9D8F99]">
-                      Use each digit exactly once
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowHint((h) => !h)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FCF1F6] dark:bg-[#2B2534] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] cursor-pointer"
+              <div className="w-full bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl py-10 px-6 flex items-center justify-center min-h-[150px] shadow-xs">
+                {stroopActive ? (
+                  <motion.span
+                    key={stroopRound}
+                    initial={{ scale: 0.85, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={FLOW_SPRING}
+                    className="font-display text-5xl sm:text-6xl font-bold tracking-wider select-none"
+                    style={{ color: STROOP_COLORS[stroopInkIdx].hex }}
                   >
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    Hint
-                  </button>
-                  <button
+                    {STROOP_COLORS[stroopWordIdx].name}
+                  </motion.span>
+                ) : (
+                  <motion.button
                     type="button"
-                    onClick={handleResetMath}
-                    aria-label="Clear expression"
-                    className="w-9 h-9 rounded-lg bg-[#FCF1F6] dark:bg-[#2B2534] text-[#574146] dark:text-[#C4B7C1] flex items-center justify-center cursor-pointer"
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={startStroop}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] text-sm font-semibold cursor-pointer shadow-xs"
                   >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {showHint && (
-                <div className="text-xs text-[#006948] dark:text-[#6EE7B7] bg-[#D1FAE5]/40 dark:bg-[#133A2E]/60 px-3.5 py-2 rounded-xl font-medium">
-                  Hint: {currentDeck.hint}
-                </div>
-              )}
-
-              {/* Expression Display */}
-              <div className="bg-[#FCF1F6] dark:bg-[#18141E] border border-[#EAE0E5] dark:border-[#312B3A] rounded-xl px-5 py-4 min-h-[68px] flex items-center justify-between gap-3">
-                <div className="font-mono text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] flex flex-wrap items-center gap-1.5">
-                  {formulaTokens.length === 0 ? (
-                    <span className="text-sm font-sans font-normal italic text-[#8A7177]">
-                      Tap digits and operators below...
-                    </span>
-                  ) : (
-                    formulaTokens.map((t, i) => (
-                      <span
-                        key={i}
-                        className={
-                          typeof t.digitIdx === 'number'
-                            ? 'bg-white dark:bg-[#2B2534] px-2.5 py-0.5 rounded-md'
-                            : 'text-[#A3265B] dark:text-[#FFB1C6] px-1'
-                        }
-                      >
-                        {t.token}
-                      </span>
-                    ))
-                  )}
-                </div>
-                {liveEval !== null && (
-                  <span className="font-mono text-lg font-bold text-[#006782] dark:text-[#7DD3FC] tabular-nums shrink-0">
-                    = {Number(liveEval.toFixed(2))}
-                  </span>
+                    <Play className="w-4 h-4 fill-current" />
+                    Start 30s Stroop Sprint
+                  </motion.button>
                 )}
               </div>
 
-              {/* Digits */}
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#8A7177]">Digits</span>
-                  <button
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                {STROOP_COLORS.map((c, i) => (
+                  <motion.button
+                    key={c.name}
                     type="button"
-                    onClick={handleDealNewMath}
-                    className="inline-flex items-center gap-1 font-semibold text-[#A3265B] dark:text-[#FFB1C6] hover:underline cursor-pointer"
+                    disabled={!stroopActive}
+                    whileHover={stroopActive ? { y: -2 } : undefined}
+                    whileTap={stroopActive ? { scale: 0.93 } : undefined}
+                    onClick={() => handleStroopAnswer(i)}
+                    className="py-3 rounded-xl font-semibold text-xs text-white cursor-pointer disabled:opacity-40 shadow-xs"
+                    style={{ backgroundColor: c.hex }}
                   >
-                    <Shuffle className="w-3.5 h-3.5" />
-                    Deal New Deck
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-4 gap-3">
-                  {currentDeck.digits.map((digit, idx) => {
-                    const used = usedIndices.includes(idx);
-                    return (
-                      <button
-                        key={`${deckIndex}-${idx}`}
-                        type="button"
-                        disabled={used}
-                        onClick={() => handlePressDigit(digit, idx)}
-                        className={`h-14 rounded-xl font-display text-2xl font-bold transition-all cursor-pointer ${
-                          used
-                            ? 'bg-[#F0E5EB] dark:bg-[#2A2433] text-[#8A7177] opacity-40 cursor-not-allowed'
-                            : 'bg-[#FCF1F6] hover:bg-[#F3E7EE] dark:bg-[#2B2534] dark:hover:bg-[#362F42] text-[#1F1A1E] dark:text-[#F5EFF3] active:scale-95 border border-[#EAE0E5] dark:border-[#3A3346]'
-                        }`}
-                      >
-                        {digit}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="grid grid-cols-6 gap-2">
-                  {['+', '−', '×', '÷', '(', ')'].map((op) => (
-                    <button
-                      key={op}
-                      type="button"
-                      onClick={() => handlePressOperator(op)}
-                      className="h-11 rounded-xl bg-[#F3E7EE] hover:bg-[#EAE0E5] dark:bg-[#2B2534] dark:hover:bg-[#383145] text-[#1F1A1E] dark:text-[#F5EFF3] font-mono text-xl font-bold transition-all active:scale-95 cursor-pointer"
-                    >
-                      {op}
-                    </button>
-                  ))}
-                </div>
+                    {c.name}
+                  </motion.button>
+                ))}
               </div>
+            </motion.div>
+          )}
 
-              {/* Submit / Delete */}
-              <div className="flex items-center justify-end gap-2.5 pt-1">
-                <button
-                  type="button"
-                  onClick={handleBackspace}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#F3E7EE] dark:bg-[#2B2534] text-[#1F1A1E] dark:text-[#F5EFF3] cursor-pointer"
-                >
-                  <Delete className="w-4 h-4" />
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmitMath}
-                  className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] transition-all active:scale-95 cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Submit Answer
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 2. STROOP COLOR REFLEX */}
-        {activeGame === 'stroop' && (
-          <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6 py-4">
-            <div>
-              <span className="text-xs font-semibold text-[#A3265B] dark:text-[#FFB1C6]">
-                Selective Attention Sprint
-              </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-1">
-                Stroop Color Reflex
-              </h2>
-              <p className="text-xs text-[#574146] dark:text-[#B5A8B2] mt-1">
-                Click the button matching the <strong>INK COLOR</strong> of the word — ignore what the text spells!
-              </p>
-            </div>
-
-            <div className="flex items-center gap-6 font-mono text-sm tabular-nums">
-              <span>Time: <strong>{stroopTime}s</strong></span>
-              <span>Score: <strong className="text-[#006948] dark:text-[#6EE7B7]">{stroopScore}</strong></span>
-              <span>Last: <strong>{stroopLastMs ? `${stroopLastMs}ms` : '—'}</strong></span>
-            </div>
-
-            <div className="w-full bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl py-10 px-6 flex items-center justify-center min-h-[150px]">
-              {stroopActive ? (
-                <span
-                  className="font-display text-5xl sm:text-6xl font-bold tracking-wider select-none"
-                  style={{ color: STROOP_COLORS[stroopInkIdx].hex }}
-                >
-                  {STROOP_COLORS[stroopWordIdx].name}
+          {/* 3. PATTERN MATRIX MEMORY */}
+          {activeGame === 'memory' && (
+            <motion.div
+              key="arena-memory"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: FLOW_EASE }}
+              className="max-w-lg mx-auto flex flex-col items-center text-center gap-5 py-2"
+            >
+              <div>
+                <span className="text-xs font-semibold text-[#006948] dark:text-[#6EE7B7]">
+                  Spatial Working Memory
                 </span>
-              ) : (
-                <button
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-1">
+                  Pattern Matrix Recall
+                </h2>
+                <p className="text-xs text-[#574146] dark:text-[#B5A8B2] mt-1">
+                  {memPhase === 'idle' && 'Watch the illuminated tile sequence, then repeat it in exact order.'}
+                  {memPhase === 'showing' && 'Watch carefully... memorizing sequence'}
+                  {memPhase === 'input' && `Your turn! Step ${memUserStep + 1} of ${memSequence.length}`}
+                  {memPhase === 'wrong' && `Missed tile on Level ${memLevel}! Ready to try again?`}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-5 text-xs font-mono tabular-nums">
+                <span>Level: <strong>{memLevel}</strong></span>
+                <span>Best Level: <strong className="text-[#006948] dark:text-[#6EE7B7]">{scores.memoryBestLevel}</strong></span>
+              </div>
+
+              <div className="grid grid-cols-4 gap-3 w-64 sm:w-72">
+                {Array.from({ length: 16 }).map((_, idx) => {
+                  const lit = memLitTile === idx;
+                  return (
+                    <motion.button
+                      key={idx}
+                      type="button"
+                      disabled={memPhase !== 'input'}
+                      animate={lit ? { scale: 0.94 } : { scale: 1 }}
+                      whileTap={memPhase === 'input' ? { scale: 0.9 } : undefined}
+                      transition={FLOW_SPRING}
+                      onClick={() => handleMemoryTileClick(idx)}
+                      aria-label={`Grid tile ${idx + 1}`}
+                      className={`aspect-square rounded-xl border transition-colors duration-150 cursor-pointer ${
+                        lit
+                          ? 'bg-[#F56498] border-[#A3265B] shadow-[0_0_20px_rgba(245,100,152,0.55)]'
+                          : 'bg-white dark:bg-[#231E2B] border-[#EAE0E5] dark:border-[#342D3E] hover:border-[#A3265B]/50'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+
+              {(memPhase === 'idle' || memPhase === 'wrong') && (
+                <motion.button
                   type="button"
-                  onClick={startStroop}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] text-sm font-semibold cursor-pointer"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={startMemoryGame}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] text-xs font-semibold cursor-pointer shadow-xs"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  Start 30s Stroop Sprint
-                </button>
+                  {memPhase === 'wrong' ? 'Play Again' : 'Start Sequence'}
+                </motion.button>
               )}
-            </div>
+            </motion.div>
+          )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
-              {STROOP_COLORS.map((c, i) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  disabled={!stroopActive}
-                  onClick={() => handleStroopAnswer(i)}
-                  className="py-3 rounded-xl font-semibold text-xs text-white transition-transform active:scale-95 cursor-pointer disabled:opacity-40"
-                  style={{ backgroundColor: c.hex }}
-                >
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 3. PATTERN MATRIX MEMORY */}
-        {activeGame === 'memory' && (
-          <div className="max-w-lg mx-auto flex flex-col items-center text-center gap-5 py-2">
-            <div>
-              <span className="text-xs font-semibold text-[#006948] dark:text-[#6EE7B7]">
-                Spatial Working Memory
-              </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-1">
-                Pattern Matrix Recall
-              </h2>
-              <p className="text-xs text-[#574146] dark:text-[#B5A8B2] mt-1">
-                {memPhase === 'idle' && 'Watch the illuminated tile sequence, then repeat it in exact order.'}
-                {memPhase === 'showing' && 'Watch carefully... memorizing sequence'}
-                {memPhase === 'input' && `Your turn! Step ${memUserStep + 1} of ${memSequence.length}`}
-                {memPhase === 'wrong' && `Missed tile on Level ${memLevel}! Ready to try again?`}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-5 text-xs font-mono tabular-nums">
-              <span>Level: <strong>{memLevel}</strong></span>
-              <span>Best Level: <strong className="text-[#006948] dark:text-[#6EE7B7]">{scores.memoryBestLevel}</strong></span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-3 w-64 sm:w-72">
-              {Array.from({ length: 16 }).map((_, idx) => {
-                const lit = memLitTile === idx;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    disabled={memPhase !== 'input'}
-                    onClick={() => handleMemoryTileClick(idx)}
-                    aria-label={`Grid tile ${idx + 1}`}
-                    className={`aspect-square rounded-xl border transition-all duration-150 cursor-pointer ${
-                      lit
-                        ? 'bg-[#F56498] border-[#A3265B] scale-95 shadow-md'
-                        : 'bg-white dark:bg-[#231E2B] border-[#EAE0E5] dark:border-[#342D3E] hover:border-[#A3265B]/50'
-                    }`}
-                  />
-                );
-              })}
-            </div>
-
-            {(memPhase === 'idle' || memPhase === 'wrong') && (
-              <button
-                type="button"
-                onClick={startMemoryGame}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] text-xs font-semibold cursor-pointer"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                {memPhase === 'wrong' ? 'Play Again' : 'Start Sequence'}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* 4. KNIGHTS & KNAVES LOGIC DEDUCTION */}
-        {activeGame === 'logic' && (
-          <div className="max-w-2xl mx-auto flex flex-col gap-5 py-2">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <span className="text-xs font-semibold text-[#006782] dark:text-[#7DD3FC]">
-                  Formal Logic Teaser {logicIdx + 1} of {LOGIC_PUZZLES.length}
+          {/* 4. KNIGHTS & KNAVES LOGIC DEDUCTION */}
+          {activeGame === 'logic' && (
+            <motion.div
+              key="arena-logic"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: FLOW_EASE }}
+              className="max-w-2xl mx-auto flex flex-col gap-5 py-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-xs font-semibold text-[#006782] dark:text-[#7DD3FC]">
+                    Formal Logic Teaser {logicIdx + 1} of {LOGIC_PUZZLES.length}
+                  </span>
+                  <h2 className="font-display text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-0.5">
+                    {currentLogic.title}
+                  </h2>
+                </div>
+                <span className="text-xs font-mono font-semibold text-[#006948] dark:text-[#6EE7B7] tabular-nums">
+                  {scores.logicSolved} solved
                 </span>
-                <h2 className="font-display text-2xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3] mt-0.5">
-                  {currentLogic.title}
-                </h2>
               </div>
-              <span className="text-xs font-mono font-semibold text-[#006948] dark:text-[#6EE7B7] tabular-nums">
-                {scores.logicSolved} solved
-              </span>
-            </div>
 
-            <div className="bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl p-5 flex flex-col gap-3">
-              <p className="text-sm text-[#1F1A1E] dark:text-[#F5EFF3] leading-relaxed">
-                {currentLogic.scenario}
-              </p>
-              <p className="text-sm font-semibold text-[#A3265B] dark:text-[#FFB1C6]">
-                {currentLogic.question}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {currentLogic.options.map((opt, i) => {
-                const picked = logicSelected === i;
-                const isCorrect = i === currentLogic.correctIndex;
-                let style =
-                  'bg-white dark:bg-[#221D2A] border-[#EAE0E5] dark:border-[#322C3C] text-[#1F1A1E] dark:text-[#F5EFF3] hover:border-[#A3265B]';
-                if (logicSelected !== null) {
-                  if (isCorrect) {
-                    style = 'bg-[#D1FAE5] dark:bg-[#133A2E] border-[#006948] text-[#065F46] dark:text-[#6EE7B7] font-semibold';
-                  } else if (picked) {
-                    style = 'bg-[#FFDAD6] dark:bg-[#4A1C22] border-[#BA1A1A] text-[#93000A] dark:text-[#FCA5A5]';
-                  }
-                }
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    disabled={logicSelected !== null}
-                    onClick={() => handleLogicChoice(i)}
-                    className={`p-3.5 rounded-xl border text-left text-xs font-medium transition-all cursor-pointer ${style}`}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
-            </div>
-
-            {logicSelected !== null && (
-              <div className="bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <p className="text-xs text-[#574146] dark:text-[#C4B7C1] leading-relaxed">
-                  <strong>Proof:</strong> {currentLogic.explanation}
+              <div className="bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl p-5 flex flex-col gap-3 shadow-xs">
+                <p className="text-sm text-[#1F1A1E] dark:text-[#F5EFF3] leading-relaxed">
+                  {currentLogic.scenario}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLogicIdx((i) => (i + 1) % LOGIC_PUZZLES.length);
-                    setLogicSelected(null);
-                  }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] shrink-0 cursor-pointer"
-                >
-                  Next Puzzle →
-                </button>
+                <p className="text-sm font-semibold text-[#A3265B] dark:text-[#FFB1C6]">
+                  {currentLogic.question}
+                </p>
               </div>
-            )}
-          </div>
-        )}
-      </section>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {currentLogic.options.map((opt, i) => {
+                  const picked = logicSelected === i;
+                  const isCorrect = i === currentLogic.correctIndex;
+                  let style =
+                    'bg-white dark:bg-[#221D2A] border-[#EAE0E5] dark:border-[#322C3C] text-[#1F1A1E] dark:text-[#F5EFF3] hover:border-[#A3265B]';
+                  if (logicSelected !== null) {
+                    if (isCorrect) {
+                      style = 'bg-[#D1FAE5] dark:bg-[#133A2E] border-[#006948] text-[#065F46] dark:text-[#6EE7B7] font-semibold';
+                    } else if (picked) {
+                      style = 'bg-[#FFDAD6] dark:bg-[#4A1C22] border-[#BA1A1A] text-[#93000A] dark:text-[#FCA5A5]';
+                    }
+                  }
+                  return (
+                    <motion.button
+                      key={opt}
+                      type="button"
+                      disabled={logicSelected !== null}
+                      whileHover={logicSelected === null ? { y: -2 } : undefined}
+                      whileTap={logicSelected === null ? { scale: 0.97 } : undefined}
+                      onClick={() => handleLogicChoice(i)}
+                      className={`p-3.5 rounded-xl border text-left text-xs font-medium transition-colors cursor-pointer ${style}`}
+                    >
+                      {opt}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <AnimatePresence>
+                {logicSelected !== null && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2, ease: FLOW_EASE }}
+                    className="bg-white dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C] rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  >
+                    <p className="text-xs text-[#574146] dark:text-[#C4B7C1] leading-relaxed">
+                      <strong>Proof:</strong> {currentLogic.explanation}
+                    </p>
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => {
+                        setLogicIdx((i) => (i + 1) % LOGIC_PUZZLES.length);
+                        setLogicSelected(null);
+                      }}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] shrink-0 cursor-pointer"
+                    >
+                      Next Puzzle →
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.section>
 
       {/* Bottom Split: Game Catalog (8 cols) + Cognitive Vitals Radar & Leaderboard (4 cols) */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* Catalog */}
+      <motion.div variants={flowItem} className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         <div className="xl:col-span-8 flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
               Exercise Catalog
             </h2>
-            <div className="inline-flex items-center p-1 rounded-xl bg-[#F3E7EE] dark:bg-[#221D2A] border border-[#EAE0E5] dark:border-[#322C3C]">
-              {(['all', 'math', 'logic', 'memory', 'spatial'] as const).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategoryFilter(cat)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize cursor-pointer transition-colors ${
-                    categoryFilter === cat
-                      ? 'bg-white dark:bg-[#312A3C] text-[#1F1A1E] dark:text-[#F5EFF3] shadow-xs'
-                      : 'text-[#574146] dark:text-[#B5A8B2]'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              layoutId="games-catalog-filter"
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              options={[
+                { id: 'all', label: 'All' },
+                { id: 'math', label: 'Math' },
+                { id: 'logic', label: 'Logic' },
+                { id: 'memory', label: 'Memory' },
+                { id: 'spatial', label: 'Spatial' },
+              ]}
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {visibleCatalog.map((item) => (
-              <button
+              <motion.button
                 key={item.id}
                 type="button"
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.98 }}
+                transition={FLOW_SPRING}
                 onClick={() => setActiveGame(item.target)}
-                className="group text-left bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/50 rounded-2xl p-5 flex flex-col justify-between h-40 transition-all hover:-translate-y-0.5 cursor-pointer"
+                className="group text-left fx-card hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/50 rounded-2xl p-5 flex flex-col justify-between h-40 transition-colors cursor-pointer"
               >
                 <div className="text-xs font-medium text-[#8A7177] dark:text-[#9D8F99] capitalize">
                   {item.category} · {item.meta}
@@ -802,14 +890,14 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
                 <div className="text-xs font-semibold text-[#A3265B] dark:text-[#FFB1C6]">
                   Launch exercise →
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
 
         {/* Cognitive Vitals Radar & Leaderboard */}
         <aside className="xl:col-span-4 flex flex-col gap-5">
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
+          <section className="fx-card rounded-2xl p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
                 Cognitive Vitals
@@ -833,7 +921,7 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
             </div>
           </section>
 
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
+          <section className="fx-card rounded-2xl p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
                 Term Leaderboard
@@ -870,7 +958,7 @@ export const BrainGamesSection: React.FC<BrainGamesSectionProps> = ({
             </div>
           </section>
         </aside>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

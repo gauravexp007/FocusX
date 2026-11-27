@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import {
   Award,
   Bookmark,
@@ -18,6 +19,13 @@ import {
 } from 'lucide-react';
 import { NoteField, NoteFormat, StudyNote } from '../types';
 import { NotePreviewArt, ScholarAvatar } from './BookCoverArt';
+import {
+  AnimatedModal,
+  FLOW_SPRING,
+  flowItem,
+  SegmentedControl,
+  staggerContainer,
+} from './MotionPrimitives';
 
 interface NotesExplorerSectionProps {
   notes: StudyNote[];
@@ -56,7 +64,6 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
   const [activeNote, setActiveNote] = useState<StudyNote | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  // Upload Note Form
   const [newTitle, setNewTitle] = useState('');
   const [newSubtitle, setNewSubtitle] = useState('');
   const [newField, setNewField] = useState<NoteField>('STEM');
@@ -124,38 +131,45 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col gap-6"
+    >
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <motion.div variants={flowItem} className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
             Notes Explorer
           </h1>
           <p className="text-sm text-[#574146] dark:text-[#B5A8B2] mt-1">
-            Browse verified study guides, organize collections, and send any note straight to the Handwriting Studio.
+            Browse curated study guides, organize collections, and send any note straight to FocusX Handwriting Studio.
           </p>
         </div>
 
-        <button
+        <motion.button
           type="button"
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => setShowUploadModal(true)}
-          className="inline-flex items-center gap-1.5 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer whitespace-nowrap shadow-xs"
+          className="inline-flex items-center gap-1.5 bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:hover:bg-[#FF7AA9] dark:text-[#1A0814] text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs"
         >
           <Upload className="w-4 h-4" />
           Upload Study Note
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Command Search & Filter Strip */}
-      <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-4 flex flex-col gap-3">
+      <motion.section variants={flowItem} className="fx-card rounded-2xl p-4 flex flex-col gap-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-          <div className="flex items-center bg-[#FCF1F6] dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] rounded-xl px-3.5 py-2 flex-1">
+          <div className="flex items-center bg-[#FCF1F6] dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E] rounded-xl px-3.5 py-2 flex-1 focus-within:border-[#A3265B] transition-colors">
             <Search className="w-4 h-4 text-[#8A7177] mr-2 shrink-0" />
             <input
               type="text"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              placeholder="Search verified study notes, courses (CS161, BioChem, Econ 102)..."
+              placeholder="Search study notes, courses (CS161, BioChem, Econ 102)..."
               className="w-full bg-transparent text-xs text-[#1F1A1E] dark:text-[#F5EFF3] placeholder:text-[#8A7177] outline-none"
             />
           </div>
@@ -185,59 +199,34 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
               <option value="recent" className="bg-white dark:bg-[#1B1722]">Recently Added</option>
             </select>
 
-            <div className="inline-flex items-center p-1 rounded-xl bg-[#FCF1F6] dark:bg-[#231E2B] border border-[#EAE0E5] dark:border-[#342D3E]">
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid view"
-                className={`p-1.5 rounded-lg cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-white dark:bg-[#312A3C] text-[#006948] dark:text-[#6EE7B7] shadow-xs'
-                    : 'text-[#8A7177]'
-                }`}
-              >
-                <Grid className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                aria-label="List view"
-                className={`p-1.5 rounded-lg cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-white dark:bg-[#312A3C] text-[#006948] dark:text-[#6EE7B7] shadow-xs'
-                    : 'text-[#8A7177]'
-                }`}
-              >
-                <List className="w-4 h-4" />
-              </button>
-            </div>
+            <SegmentedControl
+              layoutId="notes-view-mode"
+              value={viewMode}
+              onChange={setViewMode}
+              options={[
+                { id: 'grid', label: 'Grid', icon: <Grid className="w-3.5 h-3.5" /> },
+                { id: 'list', label: 'List', icon: <List className="w-3.5 h-3.5" /> },
+              ]}
+            />
           </div>
         </div>
 
-        {/* Subject Filter Tabs */}
+        {/* Subject Filter Tabs with shared layoutId */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {FIELDS.map((field) => {
-              const active = selectedField === field && !collectionFilter;
-              return (
-                <button
-                  key={field}
-                  type="button"
-                  onClick={() => {
-                    setSelectedField(field);
-                    setCollectionFilter(null);
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-                    active
-                      ? 'bg-[#FFB9F9] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814]'
-                      : 'bg-[#FCF1F6] dark:bg-[#231E2B] text-[#574146] dark:text-[#C4B7C1] hover:text-[#1F1A1E] dark:hover:text-white'
-                  }`}
-                >
-                  {field === 'All' ? `All Fields (${notes.length})` : field}
-                </button>
-              );
-            })}
-          </div>
+          <SegmentedControl
+            layoutId="notes-field-filter"
+            variant="rose"
+            value={collectionFilter ? ('__none__' as 'All' | NoteField) : selectedField}
+            onChange={(field) => {
+              setSelectedField(field);
+              setCollectionFilter(null);
+            }}
+            options={FIELDS.map((f) => ({
+              id: f,
+              label: f === 'All' ? 'All Fields' : f,
+              count: f === 'All' ? notes.length : undefined,
+            }))}
+          />
 
           {collectionFilter && (
             <button
@@ -245,25 +234,25 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
               onClick={() => setCollectionFilter(null)}
               className="text-xs font-semibold text-[#A3265B] dark:text-[#FFB1C6] hover:underline cursor-pointer"
             >
-              Clear collection filter ({collectionFilter === '__saved__' ? 'Saved' : collectionFilter}) ×
+              Clear collection ({collectionFilter === '__saved__' ? 'Saved' : collectionFilter}) ×
             </button>
           )}
         </div>
-      </section>
+      </motion.section>
 
-      {/* Main Split: Study Guides (8 cols) + Leaderboard & Collections (4 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Split */}
+      <motion.div variants={flowItem} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Guides */}
         <div className="lg:col-span-8 flex flex-col gap-4">
           <div className="flex items-center justify-between text-xs text-[#8A7177] dark:text-[#9D8F99]">
             <span className="font-semibold text-[#1F1A1E] dark:text-[#F5EFF3]">
               High-Yield Study Guides ({filteredNotes.length})
             </span>
-            <span>Click any card to read or send to Handwriting Studio</span>
+            <span>Click any card to read or convert to handwriting</span>
           </div>
 
           {filteredNotes.length === 0 ? (
-            <div className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-10 text-center flex flex-col items-center gap-3">
+            <div className="fx-card rounded-2xl p-10 text-center flex flex-col items-center gap-3">
               <p className="font-display text-base font-semibold text-[#1F1A1E] dark:text-[#F5EFF3]">
                 No notes match this filter
               </p>
@@ -283,18 +272,23 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
           ) : (
             <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'flex flex-col gap-3'}>
               {filteredNotes.map((note) => (
-                <article
+                <motion.article
+                  layout
                   key={note.id}
-                  className={`group bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/50 rounded-2xl overflow-hidden transition-all flex ${
+                  whileHover={{ y: -3 }}
+                  transition={FLOW_SPRING}
+                  className={`group fx-card hover:border-[#A3265B]/50 dark:hover:border-[#F56498]/50 rounded-2xl overflow-hidden transition-colors flex ${
                     viewMode === 'grid' ? 'flex-col' : 'flex-col sm:flex-row'
                   }`}
                 >
                   {viewMode === 'grid' && (
                     <div
                       onClick={() => setActiveNote(note)}
-                      className="cursor-pointer"
+                      className="cursor-pointer overflow-hidden"
                     >
-                      <NotePreviewArt variant={note.previewVariant} title={note.title} />
+                      <div className="transition-transform duration-300 group-hover:scale-[1.03]">
+                        <NotePreviewArt variant={note.previewVariant} title={note.title} />
+                      </div>
                     </div>
                   )}
 
@@ -308,8 +302,9 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                           {' · '}
                           {note.pages} pgs
                         </span>
-                        <button
+                        <motion.button
                           type="button"
+                          whileTap={{ scale: 0.8 }}
                           onClick={() => onToggleSave(note.id)}
                           aria-label={note.saved ? 'Remove bookmark' : 'Bookmark note'}
                           className="p-1 text-[#8A7177] hover:text-[#A3265B] dark:hover:text-[#FFB1C6] cursor-pointer shrink-0"
@@ -319,7 +314,7 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                           ) : (
                             <Bookmark className="w-4 h-4" />
                           )}
-                        </button>
+                        </motion.button>
                       </div>
 
                       <button
@@ -350,8 +345,9 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                           <Star className="w-3.5 h-3.5 fill-current" />
                           {note.rating.toFixed(1)}
                         </span>
-                        <button
+                        <motion.button
                           type="button"
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => onToggleUpvote(note.id)}
                           className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-colors cursor-pointer ${
                             note.upvoted
@@ -361,26 +357,23 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                         >
                           <ThumbsUp className="w-3 h-3" />
                           {note.upvotes}
-                        </button>
+                        </motion.button>
                       </div>
                     </div>
                   </div>
-                </article>
+                </motion.article>
               ))}
             </div>
           )}
         </div>
 
-        {/* Right Sidebar: Top Contributors & Saved Collections */}
+        {/* Right Sidebar */}
         <aside className="lg:col-span-4 flex flex-col gap-5">
-          {/* Saved Collections */}
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3] flex items-center gap-2">
-                <FolderOpen className="w-4 h-4 text-[#006782] dark:text-[#7DD3FC]" />
-                Saved Collections
-              </h2>
-            </div>
+          <section className="fx-card rounded-2xl p-5 flex flex-col gap-3">
+            <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3] flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-[#006782] dark:text-[#7DD3FC]" />
+              Saved Collections
+            </h2>
 
             <div className="flex flex-col gap-2 text-xs">
               {[
@@ -390,13 +383,15 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
               ].map((col) => {
                 const active = collectionFilter === col.key;
                 return (
-                  <button
+                  <motion.button
                     key={col.key}
                     type="button"
+                    whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setCollectionFilter(active ? null : col.key)}
                     className={`p-3 rounded-xl flex items-center justify-between transition-colors cursor-pointer ${
                       active
-                        ? 'bg-[#FFB9F9]/50 dark:bg-[#F56498]/25 text-[#1F1A1E] dark:text-[#F5EFF3] font-semibold'
+                        ? 'bg-[#FFB9F9]/55 dark:bg-[#F56498]/25 text-[#1F1A1E] dark:text-[#F5EFF3] font-semibold'
                         : 'bg-[#FCF1F6] dark:bg-[#231E2B] hover:bg-[#F3E7EE] dark:hover:bg-[#2C2536] text-[#1F1A1E] dark:text-[#F5EFF3]'
                     }`}
                   >
@@ -404,14 +399,13 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                     <span className="font-mono text-[#8A7177] dark:text-[#9D8F99] tabular-nums shrink-0">
                       {col.count} guides
                     </span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
           </section>
 
-          {/* Top Contributors */}
-          <section className="bg-white dark:bg-[#1B1722] border border-[#EAE0E5] dark:border-[#2E2837] rounded-2xl p-5 flex flex-col gap-3">
+          <section className="fx-card rounded-2xl p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-base font-bold text-[#1F1A1E] dark:text-[#F5EFF3] flex items-center gap-2">
                 <Award className="w-4 h-4 text-[#B45309] dark:text-[#FCD34D]" />
@@ -439,12 +433,12 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
             </div>
           </section>
         </aside>
-      </div>
+      </motion.div>
 
-      {/* Note Reader Modal */}
-      {activeNote && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1C1823] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      {/* Animated Note Reader Modal */}
+      <AnimatedModal open={Boolean(activeNote)} onClose={() => setActiveNote(null)} maxWidthClass="max-w-2xl">
+        {activeNote && (
+          <div className="max-h-[85vh] flex flex-col">
             <div className="p-5 border-b border-[#F0E5EB] dark:border-[#2B2533] flex items-start justify-between gap-4">
               <div>
                 <div className="text-xs text-[#8A7177] dark:text-[#9D8F99]">
@@ -476,8 +470,9 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => {
                     navigator.clipboard?.writeText(activeNote.content).catch(() => {});
                     onNotify('Copied study note text to clipboard.');
@@ -486,9 +481,10 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                 >
                   <Copy className="w-3.5 h-3.5" />
                   Copy Text
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => {
                     const target = activeNote;
                     setActiveNote(null);
@@ -498,98 +494,97 @@ export const NotesExplorerSection: React.FC<NotesExplorerSectionProps> = ({
                 >
                   <PenTool className="w-3.5 h-3.5" />
                   Open in Handwriting Studio
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatedModal>
 
-      {/* Upload Note Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1C1823] border border-[#EAE0E5] dark:border-[#322C3C] rounded-2xl max-w-lg w-full p-6 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
-                Publish Study Note
-              </h2>
+      {/* Animated Upload Note Modal */}
+      <AnimatedModal open={showUploadModal} onClose={() => setShowUploadModal(false)} maxWidthClass="max-w-lg">
+        <div className="p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold text-[#1F1A1E] dark:text-[#F5EFF3]">
+              Publish Study Note
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowUploadModal(false)}
+              className="p-1.5 rounded-lg text-[#8A7177] hover:bg-[#F3E7EE] dark:hover:bg-[#2A2432] cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleUploadNote} className="flex flex-col gap-3">
+            <input
+              type="text"
+              required
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Note Title (e.g., Quantum Mechanics: Wave Functions)"
+              className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
+            />
+            <input
+              type="text"
+              value={newSubtitle}
+              onChange={(e) => setNewSubtitle(e.target.value)}
+              placeholder="Short summary of key topics covered..."
+              className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={newField}
+                onChange={(e) => setNewField(e.target.value as NoteField)}
+                className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none cursor-pointer"
+              >
+                {FIELDS.filter((f) => f !== 'All').map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={newFormat}
+                onChange={(e) => setNewFormat(e.target.value as NoteFormat)}
+                className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none cursor-pointer"
+              >
+                {FORMATS.filter((f) => f !== 'All').map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <textarea
+              rows={6}
+              required
+              value={newContent}
+              onChange={(e) => setNewContent(e.target.value)}
+              placeholder="# Heading&#10;1. Key Concept&#10;- Bullet detail..."
+              className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1F1A1E] dark:text-[#F5EFF3] outline-none resize-none"
+            />
+            <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowUploadModal(false)}
-                className="p-1.5 rounded-lg text-[#8A7177] hover:bg-[#F3E7EE] dark:hover:bg-[#2A2432] cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#F3E7EE] dark:bg-[#26212E] text-[#1F1A1E] dark:text-[#F5EFF3] cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                Cancel
               </button>
+              <motion.button
+                type="submit"
+                whileTap={{ scale: 0.96 }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Publish Note
+              </motion.button>
             </div>
-
-            <form onSubmit={handleUploadNote} className="flex flex-col gap-3">
-              <input
-                type="text"
-                required
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Note Title (e.g., Quantum Mechanics: Wave Functions)"
-                className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
-              />
-              <input
-                type="text"
-                value={newSubtitle}
-                onChange={(e) => setNewSubtitle(e.target.value)}
-                placeholder="Short summary of key topics covered..."
-                className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none"
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  value={newField}
-                  onChange={(e) => setNewField(e.target.value as NoteField)}
-                  className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none cursor-pointer"
-                >
-                  {FIELDS.filter((f) => f !== 'All').map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={newFormat}
-                  onChange={(e) => setNewFormat(e.target.value as NoteFormat)}
-                  className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3 py-2 text-sm text-[#1F1A1E] dark:text-[#F5EFF3] outline-none cursor-pointer"
-                >
-                  {FORMATS.filter((f) => f !== 'All').map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <textarea
-                rows={6}
-                required
-                value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
-                placeholder="# Heading&#10;1. Key Concept&#10;- Bullet detail..."
-                className="bg-[#FCF1F6] dark:bg-[#241F2D] border border-[#EAE0E5] dark:border-[#363041] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1F1A1E] dark:text-[#F5EFF3] outline-none resize-none"
-              />
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#F3E7EE] dark:bg-[#26212E] text-[#1F1A1E] dark:text-[#F5EFF3] cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#FFB9F9] hover:bg-[#F8A2F0] text-[#3B1837] dark:bg-[#F56498] dark:text-[#1A0814] cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Publish Note
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
-      )}
-    </div>
+      </AnimatedModal>
+    </motion.div>
   );
 };

@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { CheckCircle2 } from 'lucide-react';
 import {
   DEFAULT_HANDWRITING_TEXT,
@@ -37,6 +37,8 @@ import {
 import { ambientAudio } from './utils/ambientAudio';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
+import { CommandPalette } from './components/CommandPalette';
+import { FLOW_EASE } from './components/MotionPrimitives';
 import { OverviewSection } from './components/OverviewSection';
 import { FocusModeSection } from './components/FocusModeSection';
 import { AnalyticsSection } from './components/AnalyticsSection';
@@ -78,18 +80,19 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [isDark, setIsDark] = usePersistentState<boolean>('sp_theme_dark', false);
+  const [isDark, setIsDark] = usePersistentState<boolean>('focusx_theme_dark', false);
 
-  // Persisted Student Workspace State
-  const [preferences, setPreferences] = usePersistentState<UserPreferences>('sp_prefs', INITIAL_PREFERENCES);
-  const [tasks, setTasks] = usePersistentState<AcademicTask[]>('sp_tasks', INITIAL_TASKS);
-  const [books, setBooks] = usePersistentState<BookItem[]>('sp_books', INITIAL_BOOKS);
-  const [highlights, setHighlights] = usePersistentState<BookHighlight[]>('sp_highlights', INITIAL_HIGHLIGHTS);
-  const [notes, setNotes] = usePersistentState<StudyNote[]>('sp_notes', INITIAL_NOTES);
-  const [focusLogs, setFocusLogs] = usePersistentState<FocusSessionLog[]>('sp_focus_logs', INITIAL_FOCUS_LOGS);
-  const [artifacts, setArtifacts] = usePersistentState<HandwritingArtifact[]>('sp_artifacts', INITIAL_ARTIFACTS);
-  const [gameScores, setGameScores] = usePersistentState<GameScores>('sp_game_scores', INITIAL_GAME_SCORES);
+  // Persisted FocusX Workspace State
+  const [preferences, setPreferences] = usePersistentState<UserPreferences>('focusx_prefs', INITIAL_PREFERENCES);
+  const [tasks, setTasks] = usePersistentState<AcademicTask[]>('focusx_tasks', INITIAL_TASKS);
+  const [books, setBooks] = usePersistentState<BookItem[]>('focusx_books', INITIAL_BOOKS);
+  const [highlights, setHighlights] = usePersistentState<BookHighlight[]>('focusx_highlights', INITIAL_HIGHLIGHTS);
+  const [notes, setNotes] = usePersistentState<StudyNote[]>('focusx_notes', INITIAL_NOTES);
+  const [focusLogs, setFocusLogs] = usePersistentState<FocusSessionLog[]>('focusx_focus_logs', INITIAL_FOCUS_LOGS);
+  const [artifacts, setArtifacts] = usePersistentState<HandwritingArtifact[]>('focusx_artifacts', INITIAL_ARTIFACTS);
+  const [gameScores, setGameScores] = usePersistentState<GameScores>('focusx_game_scores', INITIAL_GAME_SCORES);
 
   // Handwriting Studio live state
   const [hwText, setHwText] = useState<string>(DEFAULT_HANDWRITING_TEXT);
@@ -118,6 +121,18 @@ export default function App() {
     const t = window.setTimeout(() => setToastMessage(null), 3200);
     return () => window.clearTimeout(t);
   }, [toastMessage]);
+
+  // Global Cmd+K / Ctrl+K shortcut for Command Palette
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   // Sync dark mode class on <html>
   useEffect(() => {
@@ -149,7 +164,6 @@ export default function App() {
     ambientAudio.setVolume(vol);
   }, []);
 
-  // Complete a Focus Session & record into analytics
   const recordFocusBlock = useCallback(
     (minutesLogged: number) => {
       const mins = Math.max(5, Math.round(minutesLogged));
@@ -179,7 +193,6 @@ export default function App() {
     [linkedTaskId, setFocusLogs, setTasks, showToast, tasks, timerSubject]
   );
 
-  // Global Timer Countdown Tick
   useEffect(() => {
     if (!timerRunning) return;
     const interval = window.setInterval(() => {
@@ -197,7 +210,7 @@ export default function App() {
             const focusSecs = preferences.defaultFocusMinutes * 60;
             setTimerMode('focus');
             setTimerTotalSeconds(focusSecs);
-            showToast('Break complete — ready for your next deep work block.');
+            showToast('Break complete — ready for your next FocusX deep work block.');
             return focusSecs;
           }
         }
@@ -215,7 +228,6 @@ export default function App() {
     timerTotalSeconds,
   ]);
 
-  // Derived Weekly Chart Data & Today Hours
   const weeklyChartData = useMemo(() => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return days.map((day) => {
@@ -240,7 +252,11 @@ export default function App() {
     return 122 + mins / 60;
   }, [focusLogs]);
 
-  // Handlers
+  const handleNavigate = useCallback((sec: SectionId) => {
+    setActiveSection(sec);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const handleToggleTimer = () => setTimerRunning((r) => !r);
 
   const handleResetTimer = () => {
@@ -281,8 +297,8 @@ export default function App() {
     setTimerTotalSeconds(secs);
     setTimerSecondsLeft(secs);
     setTimerRunning(true);
-    setActiveSection('focus');
-    showToast(`Started ${preferences.defaultFocusMinutes}-minute Pomodoro session.`);
+    handleNavigate('focus');
+    showToast(`Started ${preferences.defaultFocusMinutes}-minute FocusX Pomodoro session.`);
   };
 
   const handleToggleTask = (id: string) => {
@@ -315,7 +331,7 @@ export default function App() {
     setTimerTotalSeconds(secs);
     setTimerSecondsLeft(secs);
     setTimerRunning(true);
-    setActiveSection('focus');
+    handleNavigate('focus');
     showToast(`Focusing on: ${task.title}`);
   };
 
@@ -366,7 +382,7 @@ export default function App() {
     setTimerTotalSeconds(30 * 60);
     setTimerSecondsLeft(30 * 60);
     setTimerRunning(true);
-    setActiveSection('focus');
+    handleNavigate('focus');
     showToast(`Started 30m reading focus block for "${bookTitle}".`);
   };
 
@@ -391,8 +407,8 @@ export default function App() {
 
   const handleSendNoteToHandwriting = (note: StudyNote) => {
     setHwText(note.content);
-    setActiveSection('handwriting');
-    showToast(`Loaded "${note.title}" into Text to Handwriting Studio.`);
+    handleNavigate('handwriting');
+    showToast(`Loaded "${note.title}" into FocusX Handwriting Studio.`);
   };
 
   const handleOpenArtifact = (art: HandwritingArtifact) => {
@@ -400,7 +416,7 @@ export default function App() {
     setHwFont(art.font);
     setHwPaper(art.paper);
     setHwInk(art.ink);
-    setActiveSection('handwriting');
+    handleNavigate('handwriting');
   };
 
   const handleSaveArtifact = (title: string, subject: string) => {
@@ -417,7 +433,7 @@ export default function App() {
       ink: hwInk,
     };
     setArtifacts((prev) => [newArt, ...prev.slice(0, 7)]);
-    showToast(`Saved "${title}" to your Handwriting Studio sheets.`);
+    showToast(`Saved "${title}" to your FocusX Handwriting Studio sheets.`);
   };
 
   const handleResetAllData = () => {
@@ -430,234 +446,251 @@ export default function App() {
     setArtifacts(INITIAL_ARTIFACTS);
     setGameScores(INITIAL_GAME_SCORES);
     setHwText(DEFAULT_HANDWRITING_TEXT);
-    showToast('Workspace reset to default sample academic data.');
+    showToast('FocusX workspace reset to default sample academic data.');
   };
 
   const pendingTaskCount = tasks.filter((t) => t.status !== 'done').length;
 
   return (
-    <div className="min-h-screen bg-[#FFF8FB] dark:bg-[#121016] text-[#1F1A1E] dark:text-[#F5EFF3] transition-colors duration-200">
-      <TopBar
-        studentName={preferences.studentName}
-        streakDays={14}
-        isDark={isDark}
-        onToggleTheme={() => setIsDark((d) => !d)}
-        onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
-        onToggleMobileMenu={() => setMobileMenuOpen((o) => !o)}
-        onQuickFocus={() => setActiveSection('focus')}
-        onOpenProfile={() => setActiveSection('profile')}
-        globalSearch={globalSearch}
-        onGlobalSearchChange={(q) => {
-          setGlobalSearch(q);
-          if (q.trim() && activeSection === 'overview') {
-            setActiveSection('notes');
-          }
-        }}
-        activeSection={activeSection}
-        timerRunning={timerRunning}
-        timerFormatted={formatShortClock(timerSecondsLeft)}
-      />
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen focusx-canvas text-[#1F1A1E] dark:text-[#F5EFF3] transition-colors duration-200">
+        <TopBar
+          studentName={preferences.studentName}
+          streakDays={14}
+          isDark={isDark}
+          onToggleTheme={() => setIsDark((d) => !d)}
+          onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
+          onToggleMobileMenu={() => setMobileMenuOpen((o) => !o)}
+          onQuickFocus={() => handleNavigate('focus')}
+          onOpenProfile={() => handleNavigate('profile')}
+          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+          onGoHome={() => handleNavigate('overview')}
+          globalSearch={globalSearch}
+          onGlobalSearchChange={(q) => {
+            setGlobalSearch(q);
+            if (q.trim() && activeSection === 'overview') {
+              setActiveSection('notes');
+            }
+          }}
+          activeSection={activeSection}
+          timerRunning={timerRunning}
+          timerFormatted={formatShortClock(timerSecondsLeft)}
+        />
 
-      <Sidebar
-        activeSection={activeSection}
-        onSelectSection={(sec) => {
-          setActiveSection(sec);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        collapsed={sidebarCollapsed}
-        mobileOpen={mobileMenuOpen}
-        onCloseMobile={() => setMobileMenuOpen(false)}
-        preferences={preferences}
-        pendingTaskCount={pendingTaskCount}
-        timerRunning={timerRunning}
-      />
+        <Sidebar
+          activeSection={activeSection}
+          onSelectSection={handleNavigate}
+          collapsed={sidebarCollapsed}
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
+          preferences={preferences}
+          pendingTaskCount={pendingTaskCount}
+          timerRunning={timerRunning}
+        />
 
-      {/* Main Content Canvas */}
-      <div
-        className={`pt-16 transition-[padding] duration-200 ${
-          sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-64'
-        }`}
-      >
-        <main className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <AnimatePresence mode="wait">
+        {/* Main Content Canvas */}
+        <div
+          className={`pt-16 transition-[padding] duration-200 ${
+            sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-64'
+          }`}
+        >
+          <main className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeSection}
+                initial={{ opacity: 0, y: 10, scale: 0.994 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.996 }}
+                transition={{ duration: 0.22, ease: FLOW_EASE }}
+              >
+                {activeSection === 'overview' && (
+                  <OverviewSection
+                    preferences={preferences}
+                    tasks={tasks}
+                    books={books}
+                    notes={notes}
+                    focusLogs={focusLogs}
+                    artifacts={artifacts}
+                    streakDays={14}
+                    todayHours={todayHours}
+                    weeklyChartData={weeklyChartData}
+                    onNavigate={handleNavigate}
+                    onToggleTask={handleToggleTask}
+                    onOpenArtifact={handleOpenArtifact}
+                    timerSecondsLeft={timerSecondsLeft}
+                    timerTotalSeconds={timerTotalSeconds}
+                    timerRunning={timerRunning}
+                    timerMode={timerMode}
+                    timerSubject={timerSubject}
+                    soundscape={soundscape}
+                    onToggleTimer={handleToggleTimer}
+                    onResetTimer={handleResetTimer}
+                    onSkipTimer={handleSkipTimer}
+                    onSelectSubject={setTimerSubject}
+                    onSelectSoundscape={handleSelectSoundscape}
+                    onStartQuickPomodoro={handleStartQuickPomodoro}
+                  />
+                )}
+
+                {activeSection === 'focus' && (
+                  <FocusModeSection
+                    timerSecondsLeft={timerSecondsLeft}
+                    timerTotalSeconds={timerTotalSeconds}
+                    timerRunning={timerRunning}
+                    timerMode={timerMode}
+                    timerSubject={timerSubject}
+                    linkedTaskId={linkedTaskId}
+                    soundscape={soundscape}
+                    volume={audioVolume}
+                    tasks={tasks}
+                    focusLogs={focusLogs}
+                    onToggleTimer={handleToggleTimer}
+                    onResetTimer={handleResetTimer}
+                    onSkipTimer={handleSkipTimer}
+                    onSetPreset={handleSetPreset}
+                    onSelectSubject={setTimerSubject}
+                    onSelectLinkedTask={setLinkedTaskId}
+                    onSelectSoundscape={handleSelectSoundscape}
+                    onChangeVolume={handleChangeVolume}
+                    onLogCurrentSession={() => {
+                      const elapsedMins = Math.max(
+                        5,
+                        Math.round((timerTotalSeconds - timerSecondsLeft) / 60) ||
+                          Math.round(timerTotalSeconds / 60)
+                      );
+                      recordFocusBlock(elapsedMins);
+                      handleResetTimer();
+                    }}
+                  />
+                )}
+
+                {activeSection === 'analytics' && (
+                  <AnalyticsSection
+                    focusLogs={focusLogs}
+                    weeklyChartData={weeklyChartData}
+                    preferences={preferences}
+                    streakDays={14}
+                    todayHours={todayHours}
+                  />
+                )}
+
+                {activeSection === 'tasks' && (
+                  <TaskManagerSection
+                    tasks={tasks}
+                    globalSearch={globalSearch}
+                    onAddTask={handleAddTask}
+                    onToggleTask={handleToggleTask}
+                    onUpdateStatus={handleUpdateTaskStatus}
+                    onDeleteTask={handleDeleteTask}
+                    onFocusTask={handleFocusOnTask}
+                  />
+                )}
+
+                {activeSection === 'reading' && (
+                  <ReadingTrackerSection
+                    books={books}
+                    highlights={highlights}
+                    preferences={preferences}
+                    globalSearch={globalSearch}
+                    streakDays={14}
+                    onLogPages={handleLogPages}
+                    onChangeShelf={handleChangeBookShelf}
+                    onAddBook={handleAddBook}
+                    onAddHighlight={handleAddHighlight}
+                    onStartReadingSession={handleStartReadingSession}
+                  />
+                )}
+
+                {activeSection === 'notes' && (
+                  <NotesExplorerSection
+                    notes={notes}
+                    globalSearch={globalSearch}
+                    onToggleSave={handleToggleSaveNote}
+                    onToggleUpvote={handleToggleUpvoteNote}
+                    onAddNote={handleAddNote}
+                    onSendToHandwriting={handleSendNoteToHandwriting}
+                    onNotify={showToast}
+                  />
+                )}
+
+                {activeSection === 'handwriting' && (
+                  <HandwritingStudioSection
+                    text={hwText}
+                    onChangeText={setHwText}
+                    font={hwFont}
+                    onChangeFont={setHwFont}
+                    paper={hwPaper}
+                    onChangePaper={setHwPaper}
+                    ink={hwInk}
+                    onChangeInk={setHwInk}
+                    artifacts={artifacts}
+                    onLoadArtifact={handleOpenArtifact}
+                    onSaveArtifact={handleSaveArtifact}
+                    onNotify={showToast}
+                  />
+                )}
+
+                {activeSection === 'games' && (
+                  <BrainGamesSection
+                    scores={gameScores}
+                    onUpdateScores={setGameScores}
+                    onNotify={showToast}
+                  />
+                )}
+
+                {activeSection === 'profile' && (
+                  <ProfileSection
+                    preferences={preferences}
+                    onUpdatePreferences={(patch) => setPreferences((p) => ({ ...p, ...patch }))}
+                    isDark={isDark}
+                    onToggleTheme={() => setIsDark((d) => !d)}
+                    totalNotes={notes.length + artifacts.length}
+                    totalHours={totalLoggedHours}
+                    streakDays={14}
+                    totalPulse={gameScores.totalPulse}
+                    onResetAllData={handleResetAllData}
+                    onNotify={showToast}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+
+        {/* Global Interactive Command Palette (Cmd+K / Ctrl+K) */}
+        <CommandPalette
+          open={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+          isDark={isDark}
+          timerRunning={timerRunning}
+          tasks={tasks}
+          books={books}
+          notes={notes}
+          onNavigate={handleNavigate}
+          onToggleTheme={() => setIsDark((d) => !d)}
+          onToggleTimer={handleToggleTimer}
+          onFocusTask={handleFocusOnTask}
+          onSendNoteToHandwriting={handleSendNoteToHandwriting}
+        />
+
+        {/* Subtle Toast Feedback */}
+        <AnimatePresence>
+          {toastMessage && (
             <motion.div
-              key={activeSection}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: FLOW_EASE }}
+              className="fixed bottom-5 right-5 z-50 bg-[#1F1A1E] dark:bg-[#F5EFF3] text-[#FFF8FB] dark:text-[#1F1A1E] px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-medium max-w-sm"
+              role="status"
+              aria-live="polite"
             >
-              {activeSection === 'overview' && (
-                <OverviewSection
-                  preferences={preferences}
-                  tasks={tasks}
-                  books={books}
-                  notes={notes}
-                  focusLogs={focusLogs}
-                  artifacts={artifacts}
-                  streakDays={14}
-                  todayHours={todayHours}
-                  weeklyChartData={weeklyChartData}
-                  onNavigate={setActiveSection}
-                  onToggleTask={handleToggleTask}
-                  onOpenArtifact={handleOpenArtifact}
-                  timerSecondsLeft={timerSecondsLeft}
-                  timerTotalSeconds={timerTotalSeconds}
-                  timerRunning={timerRunning}
-                  timerMode={timerMode}
-                  timerSubject={timerSubject}
-                  soundscape={soundscape}
-                  onToggleTimer={handleToggleTimer}
-                  onResetTimer={handleResetTimer}
-                  onSkipTimer={handleSkipTimer}
-                  onSelectSubject={setTimerSubject}
-                  onSelectSoundscape={handleSelectSoundscape}
-                  onStartQuickPomodoro={handleStartQuickPomodoro}
-                />
-              )}
-
-              {activeSection === 'focus' && (
-                <FocusModeSection
-                  timerSecondsLeft={timerSecondsLeft}
-                  timerTotalSeconds={timerTotalSeconds}
-                  timerRunning={timerRunning}
-                  timerMode={timerMode}
-                  timerSubject={timerSubject}
-                  linkedTaskId={linkedTaskId}
-                  soundscape={soundscape}
-                  volume={audioVolume}
-                  tasks={tasks}
-                  focusLogs={focusLogs}
-                  onToggleTimer={handleToggleTimer}
-                  onResetTimer={handleResetTimer}
-                  onSkipTimer={handleSkipTimer}
-                  onSetPreset={handleSetPreset}
-                  onSelectSubject={setTimerSubject}
-                  onSelectLinkedTask={setLinkedTaskId}
-                  onSelectSoundscape={handleSelectSoundscape}
-                  onChangeVolume={handleChangeVolume}
-                  onLogCurrentSession={() => {
-                    const elapsedMins = Math.max(
-                      5,
-                      Math.round((timerTotalSeconds - timerSecondsLeft) / 60) ||
-                        Math.round(timerTotalSeconds / 60)
-                    );
-                    recordFocusBlock(elapsedMins);
-                    handleResetTimer();
-                  }}
-                />
-              )}
-
-              {activeSection === 'analytics' && (
-                <AnalyticsSection
-                  focusLogs={focusLogs}
-                  weeklyChartData={weeklyChartData}
-                  preferences={preferences}
-                  streakDays={14}
-                  todayHours={todayHours}
-                />
-              )}
-
-              {activeSection === 'tasks' && (
-                <TaskManagerSection
-                  tasks={tasks}
-                  globalSearch={globalSearch}
-                  onAddTask={handleAddTask}
-                  onToggleTask={handleToggleTask}
-                  onUpdateStatus={handleUpdateTaskStatus}
-                  onDeleteTask={handleDeleteTask}
-                  onFocusTask={handleFocusOnTask}
-                />
-              )}
-
-              {activeSection === 'reading' && (
-                <ReadingTrackerSection
-                  books={books}
-                  highlights={highlights}
-                  preferences={preferences}
-                  globalSearch={globalSearch}
-                  streakDays={14}
-                  onLogPages={handleLogPages}
-                  onChangeShelf={handleChangeBookShelf}
-                  onAddBook={handleAddBook}
-                  onAddHighlight={handleAddHighlight}
-                  onStartReadingSession={handleStartReadingSession}
-                />
-              )}
-
-              {activeSection === 'notes' && (
-                <NotesExplorerSection
-                  notes={notes}
-                  globalSearch={globalSearch}
-                  onToggleSave={handleToggleSaveNote}
-                  onToggleUpvote={handleToggleUpvoteNote}
-                  onAddNote={handleAddNote}
-                  onSendToHandwriting={handleSendNoteToHandwriting}
-                  onNotify={showToast}
-                />
-              )}
-
-              {activeSection === 'handwriting' && (
-                <HandwritingStudioSection
-                  text={hwText}
-                  onChangeText={setHwText}
-                  font={hwFont}
-                  onChangeFont={setHwFont}
-                  paper={hwPaper}
-                  onChangePaper={setHwPaper}
-                  ink={hwInk}
-                  onChangeInk={setHwInk}
-                  artifacts={artifacts}
-                  onLoadArtifact={handleOpenArtifact}
-                  onSaveArtifact={handleSaveArtifact}
-                  onNotify={showToast}
-                />
-              )}
-
-              {activeSection === 'games' && (
-                <BrainGamesSection
-                  scores={gameScores}
-                  onUpdateScores={setGameScores}
-                  onNotify={showToast}
-                />
-              )}
-
-              {activeSection === 'profile' && (
-                <ProfileSection
-                  preferences={preferences}
-                  onUpdatePreferences={(patch) => setPreferences((p) => ({ ...p, ...patch }))}
-                  isDark={isDark}
-                  onToggleTheme={() => setIsDark((d) => !d)}
-                  totalNotes={notes.length + artifacts.length}
-                  totalHours={totalLoggedHours}
-                  streakDays={14}
-                  totalPulse={gameScores.totalPulse}
-                  onResetAllData={handleResetAllData}
-                  onNotify={showToast}
-                />
-              )}
+              <CheckCircle2 className="w-4 h-4 text-[#6EE7B7] dark:text-[#006948] shrink-0" />
+              <span>{toastMessage}</span>
             </motion.div>
-          </AnimatePresence>
-        </main>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Subtle Toast Feedback */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-            transition={{ duration: 0.18 }}
-            className="fixed bottom-5 right-5 z-50 bg-[#1F1A1E] dark:bg-[#F5EFF3] text-[#FFF8FB] dark:text-[#1F1A1E] px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium max-w-sm"
-            role="status"
-            aria-live="polite"
-          >
-            <CheckCircle2 className="w-4 h-4 text-[#6EE7B7] dark:text-[#006948] shrink-0" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    </MotionConfig>
   );
 }

@@ -196,7 +196,7 @@ export async function exportHandwritingPng(opts: ExportOptions): Promise<void> {
 
   // Trigger download
   const link = document.createElement('a');
-  link.download = opts.fileName || 'scholarpulse-handwritten-notes.png';
+  link.download = opts.fileName || 'focusx-handwritten-notes.png';
   link.href = canvas.toDataURL('image/png');
   link.click();
 }

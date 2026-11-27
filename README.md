@@ -1,18 +1,19 @@
-# FocusX — ScholarPulse Student Productivity & Learning Dashboard
+# FocusX — Student Productivity & Learning Companion
 
-An all-in-one digital study companion built with **React 19**, **TypeScript**, **Tailwind CSS v4**, **Motion**, **Recharts**, and **Lucide Icons**, designed with an *Academic Zen* light & dark theme system.
+FocusX is an all-in-one digital study workspace built with React, TypeScript, Tailwind CSS v4, Motion (Framer Motion), Recharts, and Lucide Icons. It brings together deep focus sessions, study analytics, task management, reading tracking, community notes, realistic text-to-handwriting rendering, and cognitive training games in one cohesive Light/Dark interface.
 
-## Features
+## Key Modules & Features
 
-- **Overview Dashboard**: Personalized welcome banner with a live daily focus goal radial gauge, Academic Vitals KPI grid (`Today / Week / Month`), Quick Actions shortcuts, embedded Live Focus Studio, weekly study bar chart, priority checklist, reading progress, upcoming deadlines, and recent handwriting sheets.
-- **Focus Mode Studio**: Interactive Pomodoro & custom duration timer (`15m`, `25m`, `50m`, breaks, and custom slider), coursework subject tagging, linked academic tasks, procedural Web Audio ambient soundscapes (*Library Rain*, *Warm Brown Noise*, *40Hz Binaural Focus*, *Quiet Study Room*) with volume control, Zen fullscreen mode, and automatic session logging.
-- **Study Analytics**: Recharts visualizations including a Weekly Study Hours vs. Daily Goal bar chart, 7/14-day Focus Trend area chart, Subject Allocation donut chart, and an interactive 28-day study consistency heatmap.
-- **Task Manager**: Switchable List & Kanban Board views, live search, status/priority filtering, task creation modal, completion tracking, and direct Focus Mode launch for any task.
-- **Reading Tracker**: Digital bookshelf (*Currently Reading*, *Want to Read*, *Finished*, *Academic Textbooks*) with bespoke SVG covers, interactive multi-segment progress donuts, `+10`/`+25 Pages` logging, reading streak calendar, highlights notebook, and Add Book modal.
-- **Notes Explorer**: Searchable, filterable study guide library (Grid/List views, field/format filters, saved collections), Note Reader modal, note publishing form, upvoting/bookmarking, and one-click **Open in Handwriting Studio**.
-- **Text to Handwriting Studio**: Live split-pane converter with 4 handwriting fonts (*Caveat*, *Patrick Hand*, *Architects Daughter*, *Kalam*), 5 paper styles (*College Ruled*, *Engineering Grid*, *Bullet Dotted*, *Warm Parchment*, *Clean Sheet*), 5 ink colors, size/spacing/tilt/margin controls, real high-resolution **PNG download**, and **PDF / Print** output.
-- **Mind & Logic Games**: Four playable cognitive exercises — **24-Math Blitz**, **Stroop Color Reflex**, **Pattern Matrix Memory**, and **Knights & Knaves Logic Deduction** — with a live Recharts Cognitive Vitals radar chart and leaderboard.
-- **Profile & Preferences**: Student dossier, customizable daily focus/Pomodoro/reading targets, light/dark theme switch, and localStorage persistence.
+- **Overview & Study Time**: Personalized daily goal ring, Academic Vitals (`Today / Week / Month`), live mini Focus Studio with ambient audio waves, active checklist, reading progress, upcoming deadlines, and recent handwriting artifacts.
+- **Focus Mode**: Interactive Pomodoro & deep-work timer (`25m`, `50m`, `5m`, `15m`) with subject presets, Web Audio API ambient soundscapes (Library Rain, Binaural 40Hz, Café Lo-Fi, Warm Static), live visualizer bars, and session tracking.
+- **Study Analytics**: 7-day and 14-day focus trend charts, subject time allocation bars, productivity insights, and an interactive 28-day study consistency heatmap.
+- **Task Manager**: Switchable List & Kanban Board views, priority/status filtering, focus-block progress meters, and smooth modal task creation.
+- **Reading Tracker**: Digital bookshelf (`Currently Reading`, `Want to Read`, `Finished`, `Textbooks`), page logging (`+10` / `+25`), reading streak calendar, expandable quote highlights, and book creation modal.
+- **Notes Explorer**: Searchable, filterable study guides with Grid/List layouts, bookmarks, upvotes, full reader modal, and note publishing.
+- **Text to Handwriting Studio**: Converts typed text into realistic handwritten sheets with selectable paper styles (Ruled, Grid, Dot Grid, Vintage Cream, Plain), multiple handwriting fonts, ink color/size/slant controls, print layout, and high-res PNG export (`focusx-handwritten-notes.png`).
+- **Mind & Logic Games**: Four playable cognitive games — 24-Math Blitz, Stroop Color Sprint, Pattern Matrix Memory, and Formal Logic Deduction — with score & streak tracking.
+- **Global `⌘K` / `Ctrl+K` Command Palette**: Instant keyboard navigation across all studios, timer controls, theme switching, and live search across tasks, books, and notes.
+- **Fluid Motion & Adaptive Theming**: Shared-element `layoutId` controls, staggered Bento entrances, spring hover/tap physics, full `prefers-reduced-motion` support, and carefully balanced Light & Dark themes.
 
 ## Getting Started
 
@@ -21,8 +22,9 @@ npm install
 npm run dev
 ```
 
-Build for production:
+## Build & Type-Check
 
 ```bash
+npm run lint
 npm run build
 ```
